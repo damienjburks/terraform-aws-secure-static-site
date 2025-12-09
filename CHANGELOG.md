@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.5] - 2025-12-08
+
+### Added
+
+- **Configurable Content Security Policy**: Added `content_security_policy` variable to allow customization of CSP header. This fixes issues with modern websites that load external resources (fonts, scripts, images from CDNs, etc.).
+
+### Changed
+
+- **Default CSP Policy**: Changed default Content Security Policy from restrictive `default-src 'self'` to a more permissive policy that allows HTTPS external resources, inline scripts/styles, and data URIs. This prevents `(blocked:csp)` errors common with modern web frameworks and static site generators.
+- **CSP Configuration**: The CSP header is now configurable via the `content_security_policy` variable in both root and CloudFront modules.
+
+### Fixed
+
+- **CSP Blocking External Resources**: Resolved issue where the default CSP was too restrictive and blocked legitimate external resources like fonts, CDN scripts, and third-party integrations that worked fine on other hosting platforms (e.g., GitHub Pages).
+
 ## [1.0.4] - 2025-12-08
 
 ### Added
@@ -102,6 +117,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Lessons learned section covering S3 encryption behavior and KMS limitations
 - Example configuration demonstrating basic usage
 
+[1.0.5]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.5
 [1.0.4]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.4
 [1.0.3]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.3
 [1.0.2]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.2

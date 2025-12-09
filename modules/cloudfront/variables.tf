@@ -66,6 +66,12 @@ variable "enable_security_headers" {
   default     = true
 }
 
+variable "content_security_policy" {
+  type        = string
+  description = "Content Security Policy header value. Use 'default-src 'self'' for strict policy, or customize for your needs (e.g., allow external resources)"
+  default     = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: https:; font-src 'self' data: https:; connect-src 'self' https:; frame-ancestors 'none';"
+}
+
 variable "tags" {
   type        = map(string)
   description = "Tags to apply to resources"

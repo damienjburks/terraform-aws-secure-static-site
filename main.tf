@@ -98,6 +98,7 @@ module "cloudfront" {
   acm_certificate_arn           = var.enable_domain ? module.dns[0].certificate_arn : null
   domain_aliases                = var.enable_domain ? concat([var.domain_name], var.alternate_domain_names) : []
   enable_security_headers       = var.enable_security_headers
+  content_security_policy       = var.content_security_policy
   tags                          = var.tags
 }
 
