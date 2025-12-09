@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.2] - 2025-12-08
+
+### Fixed
+
+- **Invalid Variable Validation**: Removed cross-variable validation that was causing "Invalid reference in variable validation" error. Terraform variable validations can only reference the variable itself.
+- **Invalid Lifecycle Block**: Removed lifecycle block from module declaration that was causing "Reserved block type name in module block" error. Lifecycle blocks are only supported in resource blocks, not module blocks.
+
+### Changed
+
+- **DNS Configuration Validation**: Replaced variable validation and lifecycle precondition with a local value validation check that triggers during `terraform plan` if `existing_route53_zone_id` is not provided when required.
+
 ## [1.0.1] - 2025-12-08
 
 ### Fixed
@@ -71,5 +82,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Lessons learned section covering S3 encryption behavior and KMS limitations
 - Example configuration demonstrating basic usage
 
+[1.0.2]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.2
 [1.0.1]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.1
 [1.0.0]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.0

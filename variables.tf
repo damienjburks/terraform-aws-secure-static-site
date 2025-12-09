@@ -31,11 +31,6 @@ variable "existing_route53_zone_id" {
   type        = string
   description = "Existing Route 53 hosted zone ID (required if enable_domain is true and create_route53_zone is false)"
   default     = null
-
-  validation {
-    condition     = var.existing_route53_zone_id != null || !var.enable_domain || var.create_route53_zone
-    error_message = "existing_route53_zone_id must be provided when enable_domain is true and create_route53_zone is false"
-  }
 }
 
 variable "logging_enabled" {
