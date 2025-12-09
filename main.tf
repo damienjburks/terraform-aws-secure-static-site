@@ -104,7 +104,11 @@ module "cloudfront" {
 
 # Validation for DNS configuration
 locals {
-  validate_dns_config = var.enable_domain && !var.create_route53_zone && var.existing_route53_zone_id == null ? tobool("ERROR: existing_route53_zone_id must be provided when enable_domain is true and create_route53_zone is false") : true
+  validate_dns_config = (
+    var.enable_domain && !var.create_route53_zone && var.existing_route53_zone_id == null
+    ? file("ERROR: existing_route53_zone_id must be provided when enable_domain is true and create_route53_zone is false")
+    : "validation_passed"
+  )
 }
 
 # DNS Module (conditional - only if custom domain is enabled)

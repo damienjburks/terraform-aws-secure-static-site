@@ -92,3 +92,14 @@ resource "aws_route53_record" "aaaa" {
     evaluate_target_health = false
   }
 }
+
+# Route 53 CNAME Record for www subdomain
+resource "aws_route53_record" "www" {
+  count = var.enabled ? 1 : 0
+
+  zone_id = var.create_hosted_zone ? aws_route53_zone.main[0].zone_id : var.existing_zone_id
+  name    = "www"
+  type    = "CNAME"
+  ttl     = 300
+  records = [var.domain_name]
+}
