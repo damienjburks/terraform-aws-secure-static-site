@@ -116,14 +116,17 @@ This allows URLs like `https://example.com/docs/getting-started` to work correct
 
 ### Encryption Implementation
 
-All S3 buckets use S3-managed encryption (SSE-S3) with AES-256:
+All S3 buckets use S3-managed encryption (SSE-S3) with AES-256 and S3 Bucket Keys enabled:
 
-1. **Primary Website Bucket**: Encrypted with AES-256
-2. **Failover Website Bucket**: Encrypted with AES-256
-3. **Logging Bucket**: Encrypted with AES-256
-4. **Replication**: S3 replication works seamlessly with AES-256 encryption
+1. **Primary Website Bucket**: Encrypted with AES-256, bucket keys enabled
+2. **Failover Website Bucket**: Encrypted with AES-256, bucket keys enabled  
+3. **Logging Bucket**: Encrypted with AES-256, bucket keys enabled
+4. **S3 Bucket Keys**: Enabled by default to reduce encryption costs by up to 99%
+5. **Replication**: S3 replication works seamlessly with AES-256 encryption
 
 **Why not KMS?** CloudFront Origin Access Control (OAC) is incompatible with KMS-encrypted S3 objects. When CloudFront requests objects from S3 using OAC, it makes anonymous requests. KMS requires authenticated requests to decrypt data, making it impossible for CloudFront to access KMS-encrypted objects. This is an AWS platform limitation, not a module limitation.
+
+
 
 ## Usage
 
@@ -140,7 +143,7 @@ module "static_website" {
   enable_failover         = true
   enable_replication      = true
   enable_security_headers = true
-  enable_spa_routing      = true  # Enable for Docusaurus, React, Vue, Angular
+  enable_spa_routing      = true   # Enable for Docusaurus, React, Vue, Angular
 
   tags = {
     Environment = "production"
@@ -223,6 +226,7 @@ module "static_website" {
 | enable_spa_routing      | Enable SPA routing by redirecting 404/403 errors to index.html (for React, Vue, Angular, Docusaurus) | bool         | false                         | no       |
 | wait_for_deployment     | Wait for CloudFront distribution deployment to complete (can be disabled for faster applies)          | bool         | true                          | no       |
 | ignore_alias_conflicts  | Temporarily disable domain aliases to avoid CNAME conflicts during updates                            | bool         | false                         | no       |
+
 
 ### Recommended Region Pairs
 

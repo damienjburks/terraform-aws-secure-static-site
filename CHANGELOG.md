@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.9] - 2025-12-10
+
+### Added
+
+- **S3 Bucket Keys**: Enabled S3 Bucket Keys by default on all S3 buckets (primary, failover, and logging) to reduce encryption costs by up to 99%. This optimization applies to all SSE-S3 encryption operations without any configuration changes required.
+
+### Changed
+
+- **Encryption Configuration**: Updated all S3 bucket server-side encryption configurations to include `bucket_key_enabled = true` for cost optimization.
+- **Documentation**: Updated README to reflect S3 Bucket Keys being enabled by default and their cost benefits.
+
+### Technical Details
+
+- **Cost Optimization**: S3 Bucket Keys reduce the number of encryption operations by using a bucket-level key hierarchy, significantly lowering costs for high-volume encryption workloads.
+- **Automatic**: No user configuration required - bucket keys are enabled by default on all buckets.
+- **Compatible**: Works seamlessly with existing SSE-S3 AES-256 encryption and S3 cross-region replication.
+
 ## [1.0.8] - 2025-12-10
 
 ### Fixed
@@ -174,6 +191,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Lessons learned section covering S3 encryption behavior and KMS limitations
 - Example configuration demonstrating basic usage
 
+[1.0.9]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.9
 [1.0.8]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.8
 [1.0.7]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.7
 [1.0.6]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.6

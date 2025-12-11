@@ -126,6 +126,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "website_primary" 
     apply_server_side_encryption_by_default {
       sse_algorithm = "AES256"
     }
+    bucket_key_enabled = true
   }
 }
 
@@ -139,6 +140,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "website_failover"
     apply_server_side_encryption_by_default {
       sse_algorithm = "AES256"
     }
+    bucket_key_enabled = true
   }
 }
 
@@ -152,6 +154,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "logs" {
     apply_server_side_encryption_by_default {
       sse_algorithm = "AES256"
     }
+    bucket_key_enabled = true
   }
 }
 
@@ -308,10 +311,10 @@ resource "aws_s3_bucket_policy" "website_primary" {
         }
       },
       {
-        Sid    = "DenyInsecureTransport"
-        Effect = "Deny"
+        Sid       = "DenyInsecureTransport"
+        Effect    = "Deny"
         Principal = "*"
-        Action   = "s3:*"
+        Action    = "s3:*"
         Resource = [
           "${aws_s3_bucket.website_primary.arn}/*",
           aws_s3_bucket.website_primary.arn
@@ -351,10 +354,10 @@ resource "aws_s3_bucket_policy" "website_failover" {
         }
       },
       {
-        Sid    = "DenyInsecureTransport"
-        Effect = "Deny"
+        Sid       = "DenyInsecureTransport"
+        Effect    = "Deny"
         Principal = "*"
-        Action   = "s3:*"
+        Action    = "s3:*"
         Resource = [
           "${aws_s3_bucket.website_failover.arn}/*",
           aws_s3_bucket.website_failover.arn

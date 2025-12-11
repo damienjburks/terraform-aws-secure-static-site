@@ -121,3 +121,5 @@ variable "ignore_alias_conflicts" {
   description = "Temporarily disable domain aliases to avoid CNAME conflicts during updates (set to true if you get CNAMEAlreadyExists errors)"
   default     = false
 }
+
+
