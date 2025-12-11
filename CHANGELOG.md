@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.8] - 2025-12-10
+
+### Fixed
+
+- **CloudFront CNAME Conflict Resolution**: Fixed "CNAMEAlreadyExists" error (StatusCode: 409) that occurs when domain aliases are already associated with another CloudFront distribution. Added `ignore_alias_conflicts` variable to temporarily disable domain aliases during updates.
+- **ACM Certificate Validation**: Fixed "InvalidViewerCertificate" error by ensuring CloudFront only uses validated certificate ARNs. Changed DNS module output from raw certificate ARN to validated certificate ARN.
+- **Certificate Validation Timeout**: Added 10-minute timeout to ACM certificate validation to handle DNS propagation delays properly.
+
+### Added
+
+- **Conflict Resolution Variable**: Added `ignore_alias_conflicts` variable to temporarily disable domain aliases when CNAME conflicts occur during deployment.
+- **Deployment Control**: Added `wait_for_deployment` variable to control whether Terraform waits for CloudFront distribution deployment completion.
+- **Enhanced Troubleshooting**: Added comprehensive CNAME conflict troubleshooting section in README with multiple resolution strategies.
+
+### Changed
+
+- **CloudFront Lifecycle Management**: Added `create_before_destroy = true` to CloudFront distribution for smoother updates and replacements.
+- **DNS Module Output**: Changed certificate ARN output from `aws_acm_certificate.main[0].arn` to `aws_acm_certificate_validation.main[0].certificate_arn` to ensure certificate is validated before use.
+- **Certificate Validation**: Added lifecycle management and timeout configuration to ACM certificate validation resource.
+
+### Technical Details
+
+- **Domain Alias Handling**: Domain aliases are now conditional based on `ignore_alias_conflicts` flag to prevent deployment failures.
+- **Certificate Chain Validation**: Ensures SSL certificates are fully validated and include valid certificate chains before CloudFront attempts to use them.
+- **Error Recovery**: Provides multiple recovery paths for common CloudFront deployment issues including CNAME conflicts and certificate validation failures.
+
 ## [1.0.7] - 2025-12-10
 
 ### Added
@@ -148,6 +174,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Lessons learned section covering S3 encryption behavior and KMS limitations
 - Example configuration demonstrating basic usage
 
+[1.0.8]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.8
 [1.0.7]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.7
 [1.0.6]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.6
 [1.0.5]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.5

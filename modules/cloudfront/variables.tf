@@ -78,6 +78,18 @@ variable "enable_spa_routing" {
   default     = false
 }
 
+variable "wait_for_deployment" {
+  type        = bool
+  description = "Wait for CloudFront distribution deployment to complete"
+  default     = true
+}
+
+variable "ignore_alias_conflicts" {
+  type        = bool
+  description = "Temporarily disable domain aliases to avoid CNAME conflicts during updates"
+  default     = false
+}
+
 variable "tags" {
   type        = map(string)
   description = "Tags to apply to resources"

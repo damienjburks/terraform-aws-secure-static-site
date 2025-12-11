@@ -1,6 +1,6 @@
 output "certificate_arn" {
-  description = "ACM certificate ARN"
-  value       = var.enabled ? aws_acm_certificate.main[0].arn : null
+  description = "ACM certificate ARN (validated)"
+  value       = var.enabled ? aws_acm_certificate_validation.main[0].certificate_arn : null
 }
 
 output "zone_id" {

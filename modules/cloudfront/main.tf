@@ -71,7 +71,8 @@ resource "aws_cloudfront_distribution" "main" {
   comment             = var.comment
   default_root_object = "index.html"
   price_class         = var.price_class
-  aliases             = var.domain_aliases
+  aliases                = var.ignore_alias_conflicts ? [] : var.domain_aliases
+  wait_for_deployment    = var.wait_for_deployment
 
   # Primary Origin
   origin {
@@ -178,6 +179,10 @@ resource "aws_cloudfront_distribution" "main" {
   }
 
   tags = var.tags
+
+  lifecycle {
+    create_before_destroy = true
+  }
 
   depends_on = [
     aws_cloudfront_response_headers_policy.security_headers

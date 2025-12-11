@@ -109,3 +109,15 @@ variable "enable_spa_routing" {
   description = "Enable Single Page Application (SPA) routing by redirecting 404/403 errors to index.html. Required for React, Vue, Angular, Docusaurus, and other client-side routing frameworks."
   default     = false
 }
+
+variable "wait_for_deployment" {
+  type        = bool
+  description = "Wait for CloudFront distribution deployment to complete (can be disabled for faster applies)"
+  default     = true
+}
+
+variable "ignore_alias_conflicts" {
+  type        = bool
+  description = "Temporarily disable domain aliases to avoid CNAME conflicts during updates (set to true if you get CNAMEAlreadyExists errors)"
+  default     = false
+}

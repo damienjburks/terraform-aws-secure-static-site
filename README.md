@@ -221,6 +221,8 @@ module "static_website" {
 | enable_replication      | Enable S3 cross-region replication                                                    | bool         | true                          | no       |
 | enable_security_headers | Enable CloudFront response headers policy with security headers                       | bool         | true                          | no       |
 | enable_spa_routing      | Enable SPA routing by redirecting 404/403 errors to index.html (for React, Vue, Angular, Docusaurus) | bool         | false                         | no       |
+| wait_for_deployment     | Wait for CloudFront distribution deployment to complete (can be disabled for faster applies)          | bool         | true                          | no       |
+| ignore_alias_conflicts  | Temporarily disable domain aliases to avoid CNAME conflicts during updates                            | bool         | false                         | no       |
 
 ### Recommended Region Pairs
 
@@ -484,6 +486,32 @@ curl https://my-bucket.s3.amazonaws.com/index.html
 
 # This should succeed
 curl https://d111111abcdef8.cloudfront.net/index.html
+```
+
+### CNAME Already Exists Error
+
+If you get a `CNAMEAlreadyExists` error during deployment, it means the domain is already associated with another CloudFront distribution.
+
+**Quick Fix:**
+```hcl
+module "website" {
+  source = "./path/to/module"
+  
+  # Temporarily disable aliases to avoid conflicts
+  ignore_alias_conflicts = true
+  
+  # ... other variables
+}
+```
+
+**Permanent Solutions:**
+1. **Remove conflicting distribution:** Find and delete the old CloudFront distribution using the same domain
+2. **Use different domain:** Configure a different domain name for this deployment
+3. **Import existing distribution:** If you own the conflicting distribution, import it into Terraform
+
+**Find conflicting distributions:**
+```bash
+aws cloudfront list-distributions --query "DistributionList.Items[?Aliases.Items[?contains(@, 'your-domain.com')]]"
 ```
 
 ### CloudFront Returns 403
