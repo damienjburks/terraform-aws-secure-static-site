@@ -134,3 +134,25 @@ module "dns" {
   cloudfront_distribution_zone_id = module.cloudfront.distribution_hosted_zone_id
   tags                            = var.tags
 }
+
+# Security Module - CloudTrail and Monitoring
+module "security" {
+  source = "./modules/security"
+
+  providers = {
+    aws.primary   = aws.primary
+    aws.us_east_1 = aws.us_east_1
+    aws.failover  = aws.failover
+  }
+
+  bucket_prefix                 = var.bucket_name
+  cloudtrail_log_retention_days = var.cloudtrail_log_retention_days
+  cloudwatch_log_retention_days = var.cloudwatch_log_retention_days
+  alarm_sns_topic_arn           = var.alarm_sns_topic_arn
+  primary_region                = var.primary_region
+  failover_region               = var.failover_region
+  enable_replication            = var.enable_replication
+  kms_key_arn_primary           = module.kms.primary_key_arn
+  kms_key_arn_failover          = module.kms.failover_key_arn
+  tags                          = var.tags
+}
