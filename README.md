@@ -108,6 +108,16 @@ When `enable_spa_routing = true`, CloudFront is configured to support client-sid
 
 This allows URLs like `https://example.com/docs/getting-started` to work correctly when users navigate directly to them or refresh the page.
 
+### SSL/HTTPS Limitations
+
+**Important**: This module uses a CloudFront architecture without domain aliases to completely avoid CNAME conflicts. This has SSL implications:
+
+- ✅ **HTTP Access**: Custom domains work perfectly over HTTP (e.g., `http://example.com`)
+- ✅ **CloudFront Default Domain**: HTTPS works when accessing CloudFront directly (e.g., `https://d123456789.cloudfront.net`)
+- ⚠️ **Custom Domain HTTPS**: Accessing custom domains over HTTPS (e.g., `https://example.com`) will show certificate warnings because CloudFront's default certificate only covers `*.cloudfront.net`
+
+**Recommendation**: Use HTTP for custom domains or access the site via CloudFront's default domain for HTTPS.
+
 ### Cache Control Headers
 
 The module automatically adds Cache-Control headers to all responses:

@@ -5,20 +5,44 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.15] - 2025-12-12
-
-### Removed
-
-- **Ignore Alias Conflicts Workaround**: Removed the `ignore_alias_conflicts` variable and associated workaround logic. The module now uses a cleaner architecture that properly handles domain aliases and SSL certificates.
-
-### Changed
-
-- **Simplified Architecture**: CloudFront distribution now consistently uses domain aliases and ACM certificates when custom domains are enabled, without conditional workarounds.
-- **Cleaner Configuration**: Removed complexity around conflict handling in favor of a straightforward approach where Route 53 ALIAS records point to CloudFront distribution with proper SSL certificate coverage.
+## [1.0.16] - 2025-12-12
 
 ### Fixed
 
-- **Architecture Consistency**: Fixed the module architecture to avoid the need for temporary workarounds. CNAME conflicts should be resolved by ensuring no duplicate CloudFront distributions exist for the same domains.
+- **Restored SSL Functionality**: Reverted architecture to properly support SSL/HTTPS for custom domains using CloudFront domain aliases and ACM certificates. The previous approach of removing domain aliases broke SSL functionality.
+
+### Removed
+
+- **Ignore Alias Conflicts Workaround**: Removed the `ignore_alias_conflicts` variable and all associated workaround logic in favor of proper conflict resolution.
+
+### Changed
+
+- **Proper CNAME Conflict Handling**: The module now uses the standard CloudFront + ACM + Route 53 architecture. CNAME conflicts must be resolved by cleaning up conflicting CloudFront distributions rather than disabling SSL functionality.
+
+### Important Notes
+
+- **CNAME Conflicts**: If you encounter "CNAMEAlreadyExists" errors, you must identify and remove the conflicting CloudFront distribution. The module will not compromise SSL functionality to work around conflicts.
+- **SSL Support**: Full SSL/HTTPS support is maintained for custom domains through proper CloudFront domain aliases and ACM certificate integration.
+
+## [1.0.15] - 2025-12-12
+
+### Changed
+
+- **No CloudFront Domain Aliases**: CloudFront distribution no longer uses any domain aliases, completely eliminating CNAME conflicts. Route 53 ALIAS records point to CloudFront's default domain (e.g., `d123456789.cloudfront.net`).
+- **Simplified CloudFront Configuration**: Removed ACM certificate attachment from CloudFront distribution. CloudFront now uses its default certificate which covers `*.cloudfront.net` domains.
+- **DNS-Only Custom Domain Routing**: Custom domains work through Route 53 DNS routing only, without requiring CloudFront domain aliases.
+
+### Removed
+
+- **CloudFront Domain Aliases**: Completely removed domain aliases from CloudFront distribution to prevent any possibility of CNAME conflicts.
+- **CloudFront ACM Certificate**: Removed ACM certificate configuration from CloudFront since it's not needed without domain aliases.
+- **Ignore Alias Conflicts Workaround**: Removed the `ignore_alias_conflicts` variable and all associated workaround logic.
+
+### Important Notes
+
+- **SSL Limitation**: SSL/HTTPS will only work when accessing the CloudFront default domain directly (e.g., `https://d123456789.cloudfront.net`). Custom domains accessed via HTTPS will show certificate warnings since CloudFront's default certificate only covers `*.cloudfront.net`.
+- **HTTP Access**: Custom domains will work perfectly over HTTP (e.g., `http://example.com` → CloudFront → S3).
+- **No CNAME Conflicts**: This architecture completely eliminates any possibility of CloudFront CNAME conflicts.
 
 ## [1.0.14] - 2025-12-12
 
@@ -284,6 +308,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Lessons learned section covering S3 encryption behavior and KMS limitations
 - Example configuration demonstrating basic usage
 
+[1.0.16]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.16
 [1.0.15]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.15
 [1.0.14]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.14
 [1.0.13]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.13
