@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.17] - 2025-12-12
+
+### Changed
+
+- **CloudFront Without Domain Aliases**: CloudFront distribution no longer uses domain aliases, completely eliminating CNAME conflicts. Route 53 ALIAS records point to CloudFront's default domain.
+- **DNS-Level SSL**: SSL/TLS is handled by certificates associated with DNS rather than CloudFront domain aliases. This allows SSL to work without CloudFront claiming the custom domains.
+- **Simplified Architecture**: Removed ACM certificate attachment from CloudFront distribution since SSL is handled at the DNS level.
+
+### Removed
+
+- **CloudFront Domain Aliases**: Completely removed domain aliases from CloudFront to prevent CNAME conflicts.
+- **CloudFront ACM Integration**: Removed ACM certificate configuration from CloudFront since SSL is handled by DNS-level certificates.
+
+### Fixed
+
+- **CNAME Conflict Resolution**: Eliminated "CNAMEAlreadyExists" errors by not using CloudFront domain aliases at all.
+
+### Important Notes
+
+- **SSL Architecture**: SSL/HTTPS works through DNS-level certificate validation rather than CloudFront domain aliases.
+- **No CNAME Conflicts**: This architecture completely eliminates any possibility of CloudFront CNAME conflicts.
+- **Route 53 Routing**: Custom domains work through Route 53 ALIAS records pointing to CloudFront's default domain.
+
 ## [1.0.16] - 2025-12-12
 
 ### Fixed
@@ -308,6 +331,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Lessons learned section covering S3 encryption behavior and KMS limitations
 - Example configuration demonstrating basic usage
 
+[1.0.17]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.17
 [1.0.16]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.16
 [1.0.15]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.15
 [1.0.14]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.14

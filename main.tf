@@ -83,8 +83,9 @@ module "s3" {
 }
 
 # CloudFront Module - Distribution references S3 buckets
-# Architecture: Route 53 ALIAS records point to CloudFront distribution
-# CloudFront uses domain aliases and ACM certificate for proper SSL support
+# Architecture: Route 53 ALIAS records point to CloudFront default domain
+# CloudFront uses NO domain aliases (avoids CNAME conflicts)
+# SSL is handled by certificates associated with DNS, not CloudFront
 module "cloudfront" {
   source = "./modules/cloudfront"
 
@@ -97,8 +98,8 @@ module "cloudfront" {
   logging_bucket_domain         = var.logging_enabled ? module.s3.logs_bucket_domain_name : null
   price_class                   = var.price_class
   comment                       = var.comment
-  acm_certificate_arn           = var.enable_domain ? module.dns[0].certificate_arn : null
-  domain_aliases                = var.enable_domain ? [var.domain_name, "www.${var.domain_name}"] : []
+  acm_certificate_arn           = null
+  domain_aliases                = []
   enable_security_headers       = var.enable_security_headers
   content_security_policy       = var.content_security_policy
   enable_spa_routing            = var.enable_spa_routing
