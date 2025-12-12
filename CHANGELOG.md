@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.14] - 2025-12-12
+
+### Fixed
+
+- **CloudFront Certificate Mismatch**: Fixed error where CloudFront distribution failed to create due to certificate not covering www subdomain. Removed automatic addition of `www.${domain_name}` from CloudFront domain aliases to match the ACM certificate configuration from v1.0.12.
+
+### Changed
+
+- **CloudFront Domain Aliases**: CloudFront distribution now only includes the primary domain and explicitly specified alternate domains, ensuring consistency with ACM certificate Subject Alternative Names.
+
 ## [1.0.13] - 2025-12-12
 
 ### Changed
@@ -259,6 +269,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Lessons learned section covering S3 encryption behavior and KMS limitations
 - Example configuration demonstrating basic usage
 
+[1.0.14]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.14
 [1.0.13]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.13
 [1.0.12]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.12
 [1.0.11]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.11
