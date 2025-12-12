@@ -16,7 +16,7 @@ resource "aws_acm_certificate" "main" {
   provider = aws.us_east_1
 
   domain_name               = var.domain_name
-  subject_alternative_names = var.alternate_domain_names
+  subject_alternative_names = concat(["www.${var.domain_name}"], var.alternate_domain_names)
   validation_method         = "DNS"
 
   tags = var.tags
@@ -101,13 +101,32 @@ resource "aws_route53_record" "aaaa" {
   }
 }
 
-# Route 53 CNAME Record for www subdomain
-resource "aws_route53_record" "www" {
+# Route 53 A Record for www subdomain (IPv4) - Direct ALIAS to CloudFront
+resource "aws_route53_record" "www_a" {
   count = var.enabled ? 1 : 0
 
   zone_id = var.create_hosted_zone ? aws_route53_zone.main[0].zone_id : var.existing_zone_id
   name    = "www"
-  type    = "CNAME"
-  ttl     = 300
-  records = [var.domain_name]
+  type    = "A"
+
+  alias {
+    name                   = var.cloudfront_distribution_domain
+    zone_id                = var.cloudfront_distribution_zone_id
+    evaluate_target_health = false
+  }
+}
+
+# Route 53 AAAA Record for www subdomain (IPv6) - Direct ALIAS to CloudFront
+resource "aws_route53_record" "www_aaaa" {
+  count = var.enabled ? 1 : 0
+
+  zone_id = var.create_hosted_zone ? aws_route53_zone.main[0].zone_id : var.existing_zone_id
+  name    = "www"
+  type    = "AAAA"
+
+  alias {
+    name                   = var.cloudfront_distribution_domain
+    zone_id                = var.cloudfront_distribution_zone_id
+    evaluate_target_health = false
+  }
 }

@@ -169,6 +169,17 @@ module "static_website" {
 }
 ```
 
+### DNS Configuration
+
+When `enable_domain = true`, the module automatically configures:
+
+- **Apex Domain**: `example.com` → CloudFront (A and AAAA ALIAS records)
+- **WWW Subdomain**: `www.example.com` → CloudFront (A and AAAA ALIAS records)
+- **ACM Certificate**: Covers both apex and www subdomains
+- **Automatic Validation**: DNS validation records created in Route 53
+
+**Important**: Both the apex domain and www subdomain use direct ALIAS records to CloudFront, avoiding problematic CNAME → ALIAS chains that can cause DNS resolution issues.
+
 ### Custom Regions (EU)
 
 ```hcl

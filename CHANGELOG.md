@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.10] - 2025-12-10
+
+### Fixed
+
+- **DNS Resolution Issues**: Fixed intermittent `ERR_NAME_NOT_RESOLVED` errors for www subdomains by eliminating problematic CNAME → ALIAS chains. The www subdomain now uses direct ALIAS records to CloudFront instead of CNAME records pointing to the apex domain.
+- **DNS Compatibility**: Resolved DNS resolver compatibility issues that occurred with some DNS clients when following CNAME → ALIAS chains.
+
+### Added
+
+- **Automatic WWW Subdomain Support**: The module now automatically includes `www.domain.com` in CloudFront distribution aliases and ACM certificate Subject Alternative Names without requiring manual configuration.
+- **Dual ALIAS Records**: Both A (IPv4) and AAAA (IPv6) ALIAS records are automatically created for the www subdomain, ensuring full compatibility and performance.
+- **Enhanced DNS Documentation**: Added comprehensive DNS configuration section explaining automatic domain setup and best practices.
+
+### Changed
+
+- **WWW DNS Records**: Changed from CNAME record (`www` → `domain.com`) to direct ALIAS records (`www` → CloudFront distribution) for both A and AAAA record types.
+- **CloudFront Aliases**: Updated domain aliases configuration to automatically include `www.${domain_name}` alongside the apex domain.
+- **ACM Certificate**: Modified certificate configuration to automatically include www subdomain in Subject Alternative Names.
+
+### Technical Details
+
+- **DNS Best Practices**: Implements AWS recommended DNS configuration using direct ALIAS records for both apex and www subdomains.
+- **Resolver Compatibility**: Eliminates DNS resolution issues across all DNS resolver implementations by avoiding CNAME → ALIAS chains.
+- **Automatic Configuration**: No user configuration changes required - www subdomain support is automatically enabled when `enable_domain = true`.
+
 ## [1.0.9] - 2025-12-10
 
 ### Added
@@ -191,6 +216,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Lessons learned section covering S3 encryption behavior and KMS limitations
 - Example configuration demonstrating basic usage
 
+[1.0.10]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.10
 [1.0.9]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.9
 [1.0.8]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.8
 [1.0.7]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.7
