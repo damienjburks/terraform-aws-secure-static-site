@@ -5,6 +5,45 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2025-12-12
+
+### Added
+
+- **Smart Domain Handling**: Module now intelligently detects root domains vs subdomains and only adds `www` certificates/records for root domains
+- **Certificate Module**: New dedicated certificate module for ACM certificate creation and validation
+- **Auto Certificate Validation**: Automatic DNS validation of ACM certificates via Route53 (configurable)
+- **Proper Dependency Flow**: Fixed architecture to follow correct dependency chain: Route53 Zone → Certificate → CloudFront → DNS Records
+- **Subdomain Support**: Proper handling of subdomains (e.g., `app.example.com`) without creating invalid `www.app.example.com` records
+- **Certificate Auto-Validation Control**: New `auto_validate_certificate` variable to control whether certificates are validated automatically
+
+### Changed
+
+- **Architecture Redesign**: Completely restructured module architecture to eliminate circular dependencies
+- **DNS Module Split**: DNS functionality split between zone creation and record creation for proper dependency management
+- **Certificate Handling**: Moved certificate creation to dedicated module with proper validation flow
+- **CloudFront Integration**: CloudFront now properly receives validated certificates and correct domain aliases
+- **Domain Detection Logic**: Added intelligent domain type detection using dot counting (`example.com` vs `app.example.com`)
+
+### Fixed
+
+- **Circular Dependencies**: Eliminated circular dependency issues between DNS, certificate, and CloudFront modules
+- **Certificate Validation Timing**: Fixed timing issues where CloudFront tried to use unvalidated certificates
+- **Subdomain Certificate Issues**: Fixed incorrect certificate creation for subdomains (no more `www.subdomain.example.com`)
+- **DNS Record Logic**: Fixed DNS record creation to only create appropriate records for each domain type
+
+### Technical Details
+
+- **Root Domain Logic**: Domains with exactly 2 parts (e.g., `example.com`) get both apex and www certificates/records
+- **Subdomain Logic**: Domains with 3+ parts (e.g., `app.example.com`) get only the specified subdomain
+- **Certificate Module**: Handles ACM certificate creation, DNS validation records, and certificate validation
+- **Dependency Chain**: Route53 Zone → Certificate (with validation) → CloudFront (with certificate) → DNS Records (pointing to CloudFront)
+
+### Migration Notes
+
+- **Existing Deployments**: May require certificate recreation due to architecture changes
+- **Subdomain Users**: Will see removal of incorrect `www` certificates and DNS records
+- **No Breaking Changes**: All existing variables remain compatible
+
 ## [1.0.18] - 2025-12-12
 
 ### Changed

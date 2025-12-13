@@ -33,6 +33,12 @@ variable "existing_route53_zone_id" {
   default     = null
 }
 
+variable "auto_validate_certificate" {
+  type        = bool
+  description = "Automatically validate ACM certificate using DNS records in Route53 (set to false if domain is managed outside AWS)"
+  default     = true
+}
+
 variable "logging_enabled" {
   type        = bool
   description = "Enable CloudFront access logging"

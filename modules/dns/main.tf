@@ -1,28 +1,9 @@
 terraform {
   required_providers {
     aws = {
-      source                = "hashicorp/aws"
-      version               = ">= 5.0.0"
-      configuration_aliases = [aws.us_east_1]
+      source  = "hashicorp/aws"
+      version = ">= 5.0.0"
     }
-  }
-}
-
-
-# ACM Certificate (must be in us-east-1 for CloudFront)
-resource "aws_acm_certificate" "main" {
-  count = var.enabled ? 1 : 0
-
-  provider = aws.us_east_1
-
-  domain_name               = var.domain_name
-  subject_alternative_names = concat(["www.${var.domain_name}"], var.alternate_domain_names)
-  validation_method         = "DNS"
-
-  tags = var.tags
-
-  lifecycle {
-    create_before_destroy = true
   }
 }
 
@@ -35,45 +16,9 @@ resource "aws_route53_zone" "main" {
   tags = var.tags
 }
 
-# Route 53 Records for ACM Validation
-resource "aws_route53_record" "cert_validation" {
-  for_each = var.enabled ? {
-    for dvo in aws_acm_certificate.main[0].domain_validation_options : dvo.domain_name => {
-      name   = dvo.resource_record_name
-      record = dvo.resource_record_value
-      type   = dvo.resource_record_type
-    }
-  } : {}
-
-  allow_overwrite = true
-  name            = each.value.name
-  records         = [each.value.record]
-  ttl             = 60
-  type            = each.value.type
-  zone_id         = var.create_hosted_zone ? aws_route53_zone.main[0].zone_id : var.existing_zone_id
-}
-
-# ACM Certificate Validation
-resource "aws_acm_certificate_validation" "main" {
-  count = var.enabled ? 1 : 0
-
-  provider = aws.us_east_1
-
-  certificate_arn         = aws_acm_certificate.main[0].arn
-  validation_record_fqdns = [for record in aws_route53_record.cert_validation : record.fqdn]
-
-  timeouts {
-    create = "45m"
-  }
-
-  lifecycle {
-    create_before_destroy = true
-  }
-}
-
 # Route 53 A Record (IPv4)
 resource "aws_route53_record" "a" {
-  count = var.enabled ? 1 : 0
+  count = var.enabled && var.create_dns_records ? 1 : 0
 
   zone_id = var.create_hosted_zone ? aws_route53_zone.main[0].zone_id : var.existing_zone_id
   name    = var.domain_name
@@ -88,7 +33,7 @@ resource "aws_route53_record" "a" {
 
 # Route 53 AAAA Record (IPv6)
 resource "aws_route53_record" "aaaa" {
-  count = var.enabled ? 1 : 0
+  count = var.enabled && var.create_dns_records ? 1 : 0
 
   zone_id = var.create_hosted_zone ? aws_route53_zone.main[0].zone_id : var.existing_zone_id
   name    = var.domain_name
@@ -101,9 +46,9 @@ resource "aws_route53_record" "aaaa" {
   }
 }
 
-# Route 53 A Record for WWW subdomain (IPv4)
+# Route 53 A Record for WWW subdomain (IPv4) - only for root domains
 resource "aws_route53_record" "www_a" {
-  count = var.enabled ? 1 : 0
+  count = var.enabled && var.create_dns_records && var.create_www_records ? 1 : 0
 
   zone_id = var.create_hosted_zone ? aws_route53_zone.main[0].zone_id : var.existing_zone_id
   name    = "www.${var.domain_name}"
@@ -116,9 +61,9 @@ resource "aws_route53_record" "www_a" {
   }
 }
 
-# Route 53 AAAA Record for WWW subdomain (IPv6)
+# Route 53 AAAA Record for WWW subdomain (IPv6) - only for root domains
 resource "aws_route53_record" "www_aaaa" {
-  count = var.enabled ? 1 : 0
+  count = var.enabled && var.create_dns_records && var.create_www_records ? 1 : 0
 
   zone_id = var.create_hosted_zone ? aws_route53_zone.main[0].zone_id : var.existing_zone_id
   name    = "www.${var.domain_name}"

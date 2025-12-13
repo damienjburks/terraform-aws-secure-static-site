@@ -14,6 +14,7 @@ resource "aws_s3_bucket" "website_primary" {
   provider = aws.primary
 
   bucket = "${var.bucket_name}-${var.primary_region}"
+  force_destroy = true
 
   tags = merge(
     var.tags,
@@ -30,7 +31,8 @@ resource "aws_s3_bucket" "website_failover" {
   provider = aws.failover
 
   bucket = "${var.bucket_name}-${var.failover_region}"
-
+  force_destroy = true
+  
   tags = merge(
     var.tags,
     {
