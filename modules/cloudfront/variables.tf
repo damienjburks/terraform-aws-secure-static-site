@@ -92,6 +92,12 @@ variable "cache_control_header" {
   default     = "no-cache, no-store, must-revalidate"
 }
 
+variable "allowed_countries" {
+  type        = list(string)
+  description = "List of allowed country codes for geo-restriction. If null, defaults to common countries (US, CA, GB, AU, DE, FR, etc.)"
+  default     = null
+}
+
 variable "tags" {
   type        = map(string)
   description = "Tags to apply to resources"

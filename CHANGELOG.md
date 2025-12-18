@@ -12,11 +12,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **S3 Intelligent Tiering**: Automatic cost optimization for all S3 buckets (website and logs) with configurable tiering schedule
 - **S3 Force Destroy**: Added `force_destroy = true` to logs bucket for consistent cleanup behavior across all buckets
 - **Cost Optimization Documentation**: Added comprehensive cost optimization section explaining intelligent tiering benefits
+- **Security Module**: New dedicated security module for CloudTrail, monitoring, and security features
 
 ### Changed
 
 - **CloudFront Price Class Default**: Improved default from `PriceClass_100` to `PriceClass_200` for better global coverage
 - **S3 Tiering Configuration**: Objects automatically move to Archive Access (90 days) and Deep Archive Access (180 days) for cost savings
+- **DNS Module Architecture**: Cleaned up DNS module to focus only on Route53 zone and record management (removed ACM certificate resources)
+
+### Fixed
+
+- **Architecture Separation**: Moved security features (DNS logging, DNSSEC, KMS encryption) from DNS module to dedicated security module
+- **Provider Configuration**: Removed unnecessary `aws.us_east_1` provider requirement from DNS module
+- **Module Dependencies**: Fixed circular dependencies and provider configuration conflicts
 
 ### Technical Details
 
@@ -24,10 +32,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Cost Savings**: Can reduce storage costs by 40-60% for infrequently accessed content
 - **No Performance Impact**: No retrieval fees for frequent access patterns, automatic optimization
 - **Global Coverage**: PriceClass_200 includes Asia, Middle East, and Africa (excludes only South America and Oceania)
+- **Clean Architecture**: DNS module handles only Route53, Certificate module handles ACM, Security module handles monitoring
 
 ### Configuration
 
 - **New Variable**: `enable_intelligent_tiering` (default: `true`) to control S3 Intelligent Tiering
+- **Security Variables**: Added CloudTrail and monitoring configuration variables
 - **Backward Compatible**: All existing configurations continue to work without changes
 
 ## [1.1.0] - 2025-12-12

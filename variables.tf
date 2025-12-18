@@ -130,6 +130,24 @@ variable "cache_control_header" {
   default     = "no-cache, no-store, must-revalidate"
 }
 
+variable "cloudtrail_log_retention_days" {
+  type        = number
+  description = "Number of days to retain CloudTrail logs in S3"
+  default     = 365
+}
+
+variable "cloudwatch_log_retention_days" {
+  type        = number
+  description = "Number of days to retain CloudWatch logs"
+  default     = 365
+}
+
+variable "alarm_sns_topic_arn" {
+  type        = string
+  description = "SNS topic ARN for security alarms (optional)"
+  default     = null
+}
+
 variable "enable_intelligent_tiering" {
   type        = bool
   description = "Enable S3 Intelligent Tiering for automatic cost optimization (moves infrequently accessed objects to cheaper storage classes)"
