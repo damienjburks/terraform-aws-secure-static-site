@@ -39,6 +39,12 @@ variable "enable_replication" {
   default     = true
 }
 
+variable "enable_intelligent_tiering" {
+  type        = bool
+  description = "Enable S3 Intelligent Tiering for cost optimization"
+  default     = true
+}
+
 variable "tags" {
   type        = map(string)
   description = "Tags to apply to S3 buckets"

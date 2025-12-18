@@ -22,8 +22,17 @@ A secure, production-ready Terraform module for hosting static websites on AWS w
        │ HTTPS (TLS 1.2+)
        ▼
 ┌─────────────────────────────────────────────┐
+│   Route53 (Optional)                        │
+│   - Custom Domain (example.com)             │
+│   - A/AAAA Records → CloudFront             │
+│   - Smart www handling (root domains only)  │
+└──────┬──────────────────────────────────────┘
+       │
+       ▼
+┌─────────────────────────────────────────────┐
 │   CloudFront Distribution                   │
-│   - HTTPS Only                              │
+│   - HTTPS Only + Custom Domain              │
+│   - ACM Certificate (Auto-validated)        │
 │   - Security Headers (HSTS, CSP, etc.)      │
 │   - Origin Group (Multi-Region Failover)    │
 └──────┬──────────────────────────────────────┘
@@ -32,7 +41,7 @@ A secure, production-ready Terraform module for hosting static websites on AWS w
        │                                      ▼
        │              ┌─────────────────────────────────────┐
        │              │ S3 Bucket - Primary Region          │
-       │              │ - Private + KMS Encrypted           │
+       │              │ - Private + AES-256 Encrypted       │
        │              │ - Replicates to Failover            │
        │              └─────────────────────────────────────┘
        │
@@ -40,17 +49,34 @@ A secure, production-ready Terraform module for hosting static websites on AWS w
                                               ▼
                       ┌─────────────────────────────────────┐
                       │ S3 Bucket - Failover Region         │
-                      │ - Private + KMS Encrypted           │
+                      │ - Private + AES-256 Encrypted       │
                       │ - Replication Destination           │
                       └─────────────────────────────────────┘
 ```
 
+### New Architecture Flow (v1.1.0)
+
+The module now follows a proper dependency chain for domain setup:
+
+1. **Route53 Zone** → Creates hosted zone (if needed)
+2. **ACM Certificate** → Creates SSL certificate with auto-validation
+3. **CloudFront Distribution** → Uses certificate and domain aliases
+4. **DNS Records** → A/AAAA records pointing to CloudFront
+
 ### Component Relationships
 
-- **KMS Module**: Creates customer-managed encryption keys in both regions (optional, for future use)
+- **Certificate Module**: Creates ACM certificate (us-east-1) with optional auto-validation via Route53
 - **S3 Module**: Creates website buckets (primary + failover) and logging bucket, all with AES-256 encryption
-- **CloudFront Module**: Creates distribution with OAC, origin groups for failover, and security headers policy
-- **DNS Module** (Optional): Creates ACM certificate (us-east-1) and Route 53 records for custom domain
+- **CloudFront Module**: Creates distribution with OAC, origin groups for failover, security headers, and custom domain support
+- **DNS Module**: Creates Route53 zone and A/AAAA records pointing to CloudFront distribution
+
+### Smart Domain Handling
+
+The module intelligently handles different domain types:
+
+- **Root domains** (e.g., `example.com`) → Certificate includes both `example.com` and `www.example.com`
+- **Subdomains** (e.g., `app.example.com`) → Certificate only includes `app.example.com` (no www)
+- **Auto-detection** → Uses domain structure to determine appropriate certificate configuration
 
 **Note**: Website buckets use S3-managed encryption (SSE-S3/AES-256) rather than KMS encryption due to an AWS limitation: CloudFront Origin Access Control (OAC) cannot decrypt KMS-encrypted objects because CloudFront makes anonymous requests to S3, and KMS does not support anonymous access.
 
@@ -108,6 +134,17 @@ When `enable_spa_routing = true`, CloudFront is configured to support client-sid
 
 This allows URLs like `https://example.com/docs/getting-started` to work correctly when users navigate directly to them or refresh the page.
 
+### SSL/HTTPS Support
+
+**Full SSL Support**: This module provides complete SSL/HTTPS support for custom domains:
+
+- ✅ **Custom Domain HTTPS**: Full SSL support for custom domains (e.g., `https://example.com`)
+- ✅ **CloudFront Default Domain**: HTTPS works when accessing CloudFront directly (e.g., `https://d123456789.cloudfront.net`)
+- ✅ **ACM Integration**: Automatic SSL certificate provisioning and validation via ACM
+- ✅ **Domain Aliases**: CloudFront distribution properly configured with custom domain aliases
+
+**Note**: If you encounter CNAME conflicts during deployment, you may need to remove conflicting CloudFront distributions that are using the same domain.
+
 ### Cache Control Headers
 
 The module automatically adds Cache-Control headers to all responses:
@@ -134,6 +171,17 @@ module "website" {
 - **Automatic Failover**: CloudFront origin groups fail over on 5xx status codes (500, 502, 503, 504)
 - **Cross-Region Replication**: S3 replication ensures data availability in both regions
 - **Versioning**: S3 versioning enabled on website buckets for replication
+
+### Cost Optimization
+
+- **S3 Intelligent Tiering**: Automatically moves infrequently accessed objects to cheaper storage classes
+  - Objects not accessed for 30 days → Infrequent Access (IA)
+  - Objects not accessed for 90 days → Archive Access
+  - Objects not accessed for 180 days → Deep Archive Access
+  - No retrieval fees for frequent access patterns
+  - Automatic cost optimization without performance impact
+- **S3 Bucket Keys**: Enabled on all buckets to reduce encryption costs by up to 99%
+- **CloudFront Caching**: Reduces origin requests and data transfer costs
 
 ### Encryption Implementation
 
@@ -195,12 +243,19 @@ module "static_website" {
 
 When `enable_domain = true`, the module automatically configures:
 
+#### For Root Domains (e.g., `example.com`)
 - **Apex Domain**: `example.com` → CloudFront (A and AAAA ALIAS records)
 - **WWW Subdomain**: `www.example.com` → CloudFront (A and AAAA ALIAS records)
-- **ACM Certificate**: Covers both apex and www subdomains
+- **ACM Certificate**: Covers both `example.com` and `www.example.com`
 - **Automatic Validation**: DNS validation records created in Route 53
 
-**Important**: Both the apex domain and www subdomain use direct ALIAS records to CloudFront, avoiding problematic CNAME → ALIAS chains that can cause DNS resolution issues.
+#### For Subdomains (e.g., `app.example.com`)
+- **Subdomain Only**: `app.example.com` → CloudFront (A and AAAA ALIAS records)
+- **No WWW**: Does not create `www.app.example.com` (would be invalid)
+- **ACM Certificate**: Covers only `app.example.com`
+- **Automatic Validation**: DNS validation records created in Route 53
+
+**Important**: The module intelligently detects domain types and only creates appropriate DNS records and certificates. Both apex domains and subdomains use direct ALIAS records to CloudFront, avoiding problematic CNAME → ALIAS chains.
 
 ### Custom Regions (EU)
 
@@ -246,6 +301,8 @@ module "static_website" {
 | domain_name             | Primary domain name for the website (required if enable_domain is true)               | string       | null                          | no       |
 | alternate_domain_names  | List of alternate domain names (CNAMEs) for CloudFront                                | list(string) | []                            | no       |
 | create_route53_zone     | Create a new Route 53 hosted zone for the domain                                      | bool         | false                         | no       |
+| existing_route53_zone_id | Existing Route 53 hosted zone ID (required if enable_domain is true and create_route53_zone is false) | string       | null                          | no       |
+| auto_validate_certificate | Automatically validate ACM certificate using DNS records in Route53 (set to false if domain is managed outside AWS) | bool         | true                          | no       |
 | logging_enabled         | Enable CloudFront access logging                                                      | bool         | true                          | no       |
 | kms_key_arn             | (Deprecated) ARN of existing KMS key - not used due to CloudFront OAC incompatibility | string       | null                          | no       |
 | price_class             | CloudFront price class (PriceClass_All, PriceClass_200, PriceClass_100)               | string       | "PriceClass_100"              | no       |
@@ -258,8 +315,8 @@ module "static_website" {
 | enable_security_headers | Enable CloudFront response headers policy with security headers                       | bool         | true                          | no       |
 | enable_spa_routing      | Enable SPA routing by redirecting 404/403 errors to index.html (for React, Vue, Angular, Docusaurus) | bool         | false                         | no       |
 | wait_for_deployment     | Wait for CloudFront distribution deployment to complete (can be disabled for faster applies)          | bool         | true                          | no       |
-| ignore_alias_conflicts  | Temporarily disable domain aliases to avoid CNAME conflicts during updates                            | bool         | false                         | no       |
 | cache_control_header     | Cache-Control header value to add to all responses from CloudFront                                    | string       | "no-cache, no-store, must-revalidate" | no       |
+| enable_intelligent_tiering | Enable S3 Intelligent Tiering for automatic cost optimization (moves infrequently accessed objects to cheaper storage classes) | bool         | true                          | no       |
 
 
 ### Recommended Region Pairs
@@ -277,6 +334,8 @@ module "static_website" {
 | website_bucket_name        | Name of the primary S3 bucket containing website content |
 | logging_bucket_name        | Name of the S3 bucket containing CloudFront logs         |
 | route53_nameservers        | Nameservers for the Route 53 hosted zone (if created)    |
+| certificate_arn            | ARN of the ACM certificate (if domain is enabled)        |
+| route53_zone_id            | Route 53 hosted zone ID (if created or provided)         |
 
 ## Deployment
 
@@ -526,25 +585,23 @@ curl https://my-bucket.s3.amazonaws.com/index.html
 curl https://d111111abcdef8.cloudfront.net/index.html
 ```
 
+### Bucket Cleanup and Force Destroy
+
+All S3 buckets are created with `force_destroy = true` for easier cleanup during development and testing:
+
+- **Development/Testing**: `terraform destroy` will automatically delete buckets and all contents
+- **Production**: Consider setting `force_destroy = false` for additional safety
+- **Data Recovery**: Ensure you have backups before destroying production buckets
+
+**Note**: Force destroy will permanently delete all objects, versions, and delete markers in the bucket.
+
 ### CNAME Already Exists Error
 
 If you get a `CNAMEAlreadyExists` error during deployment, it means the domain is already associated with another CloudFront distribution.
 
-**Quick Fix:**
-```hcl
-module "website" {
-  source = "./path/to/module"
-  
-  # Temporarily disable aliases to avoid conflicts
-  ignore_alias_conflicts = true
-  
-  # ... other variables
-}
-```
-
-**Permanent Solutions:**
+**Solutions:**
 1. **Remove conflicting distribution:** Find and delete the old CloudFront distribution using the same domain
-2. **Use different domain:** Configure a different domain name for this deployment
+2. **Use different domain:** Configure a different domain name for this deployment  
 3. **Import existing distribution:** If you own the conflicting distribution, import it into Terraform
 
 **Find conflicting distributions:**

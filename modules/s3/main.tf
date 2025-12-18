@@ -13,7 +13,8 @@ terraform {
 resource "aws_s3_bucket" "website_primary" {
   provider = aws.primary
 
-  bucket = "${var.bucket_name}-${var.primary_region}"
+  bucket        = "${var.bucket_name}-${var.primary_region}"
+  force_destroy = true
 
   tags = merge(
     var.tags,
@@ -29,7 +30,8 @@ resource "aws_s3_bucket" "website_primary" {
 resource "aws_s3_bucket" "website_failover" {
   provider = aws.failover
 
-  bucket = "${var.bucket_name}-${var.failover_region}"
+  bucket        = "${var.bucket_name}-${var.failover_region}"
+  force_destroy = true
 
   tags = merge(
     var.tags,
@@ -46,7 +48,8 @@ resource "aws_s3_bucket" "website_failover" {
 resource "aws_s3_bucket" "logs" {
   provider = aws.primary
 
-  bucket = "${var.bucket_name}-logs"
+  bucket        = "${var.bucket_name}-logs"
+  force_destroy = true
 
   tags = merge(
     var.tags,
@@ -423,25 +426,98 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "logs" {
 }
 
 
-# Versioning - Primary Website Bucket
+# Intelligent Tiering - Primary Website Bucket
+resource "aws_s3_bucket_intelligent_tiering_configuration" "website_primary" {
+  count = var.enable_intelligent_tiering ? 1 : 0
+
+  provider = aws.primary
+
+  bucket = aws_s3_bucket.website_primary.id
+  name   = "EntireBucket"
+
+  filter {
+    prefix = ""
+  }
+
+  tiering {
+    access_tier = "ARCHIVE_ACCESS"
+    days        = 90
+  }
+
+  tiering {
+    access_tier = "DEEP_ARCHIVE_ACCESS"
+    days        = 180
+  }
+}
+
+# Intelligent Tiering - Failover Website Bucket
+resource "aws_s3_bucket_intelligent_tiering_configuration" "website_failover" {
+  count = var.enable_intelligent_tiering ? 1 : 0
+
+  provider = aws.failover
+
+  bucket = aws_s3_bucket.website_failover.id
+  name   = "EntireBucket"
+
+  filter {
+    prefix = ""
+  }
+
+  tiering {
+    access_tier = "ARCHIVE_ACCESS"
+    days        = 90
+  }
+
+  tiering {
+    access_tier = "DEEP_ARCHIVE_ACCESS"
+    days        = 180
+  }
+}
+
+# Intelligent Tiering - Logs Bucket
+resource "aws_s3_bucket_intelligent_tiering_configuration" "logs" {
+  count = var.enable_intelligent_tiering ? 1 : 0
+
+  provider = aws.primary
+
+  bucket = aws_s3_bucket.logs.id
+  name   = "EntireBucket"
+
+  filter {
+    prefix = ""
+  }
+
+  tiering {
+    access_tier = "ARCHIVE_ACCESS"
+    days        = 90
+  }
+
+  tiering {
+    access_tier = "DEEP_ARCHIVE_ACCESS"
+    days        = 180
+  }
+}
+
+
+# Versioning - Primary Website Bucket (Only enabled if replication is enabled)
 resource "aws_s3_bucket_versioning" "website_primary" {
   provider = aws.primary
 
   bucket = aws_s3_bucket.website_primary.id
 
   versioning_configuration {
-    status = "Enabled"
+    status = var.enable_replication ? "Enabled" : "Disabled"
   }
 }
 
-# Versioning - Failover Website Bucket
+# Versioning - Failover Website Bucket (Only enabled if replication is enabled)
 resource "aws_s3_bucket_versioning" "website_failover" {
   provider = aws.failover
 
   bucket = aws_s3_bucket.website_failover.id
 
   versioning_configuration {
-    status = "Enabled"
+    status = var.enable_replication ? "Enabled" : "Disabled"
   }
 }
 

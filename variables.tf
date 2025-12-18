@@ -33,6 +33,12 @@ variable "existing_route53_zone_id" {
   default     = null
 }
 
+variable "auto_validate_certificate" {
+  type        = bool
+  description = "Automatically validate ACM certificate using DNS records in Route53 (set to false if domain is managed outside AWS)"
+  default     = true
+}
+
 variable "logging_enabled" {
   type        = bool
   description = "Enable CloudFront access logging"
@@ -116,11 +122,7 @@ variable "wait_for_deployment" {
   default     = true
 }
 
-variable "ignore_alias_conflicts" {
-  type        = bool
-  description = "Temporarily disable domain aliases to avoid CNAME conflicts during updates (set to true if you get CNAMEAlreadyExists errors)"
-  default     = false
-}
+
 
 variable "cache_control_header" {
   type        = string
@@ -145,5 +147,15 @@ variable "alarm_sns_topic_arn" {
   description = "SNS topic ARN for security alarms (optional)"
   default     = null
 }
+
+variable "enable_intelligent_tiering" {
+  type        = bool
+  description = "Enable S3 Intelligent Tiering for automatic cost optimization (moves infrequently accessed objects to cheaper storage classes)"
+  default     = true
+}
+
+
+
+
 
 

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS Static Website - Example</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+        }
+        
+        h1 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 2.5em;
+        }
+        
+        .badge {
+            display: inline-block;
+            background: #10b981;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            margin-bottom: 20px;
+        }
+        
+        .features {
+            margin: 30px 0;
+        }
+        
+        .feature {
+            padding: 15px;
+            margin: 10px 0;
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            border-radius: 4px;
+        }
+        
+        .feature h3 {
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+        
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+            text-align: center;
+            color: #6b7280;
+            font-size: 0.9em;
+        }
+        
+        code {
+            background: #f3f4f6;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            color: #dc2626;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <span class="badge">✓ Deployed Successfully</span>
+        <h1>🚀 AWS Static Website</h1>
+        <p>Your secure, multi-region static website is now live!</p>
+        
+        <div class="features">
+            <div class="feature">
+                <h3>🔒 Security First</h3>
+                <p>Protected with HSTS, CSP, X-Frame-Options, and other security headers. All S3 buckets are private with KMS encryption.</p>
+            </div>
+            
+            <div class="feature">
+                <h3>🌍 Multi-Region Failover</h3>
+                <p>Content is replicated across <code>us-east-1</code> and <code>us-west-2</code> with automatic CloudFront failover on 5xx errors.</p>
+            </div>
+            
+            <div class="feature">
+                <h3>⚡ CloudFront CDN</h3>
+                <p>Global content delivery with HTTPS-only access and TLS 1.2 minimum. Origin Access Control (OAC) ensures S3 buckets remain private.</p>
+            </div>
+            
+            <div class="feature">
+                <h3>🔄 Cross-Region Replication</h3>
+                <p>Automatic S3 replication from primary to failover region ensures data durability and availability.</p>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Deployed with Terraform • Powered by AWS</p>
+            <p>CloudFront, S3, KMS, and Route 53</p>
+        </div>
+    </div>
+</body>
+</html>

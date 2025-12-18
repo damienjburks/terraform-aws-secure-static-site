@@ -8,15 +8,21 @@ variable "domain_name" {
   description = "Primary domain name"
 }
 
-variable "alternate_domain_names" {
-  type        = list(string)
-  description = "Additional domain names"
-  default     = []
-}
-
 variable "create_hosted_zone" {
   type        = bool
   description = "Create new Route 53 hosted zone"
+  default     = false
+}
+
+variable "create_dns_records" {
+  type        = bool
+  description = "Create DNS A/AAAA records pointing to CloudFront"
+  default     = false
+}
+
+variable "create_www_records" {
+  type        = bool
+  description = "Create www subdomain DNS records (only for root domains)"
   default     = false
 }
 
@@ -29,11 +35,13 @@ variable "existing_zone_id" {
 variable "cloudfront_distribution_domain" {
   type        = string
   description = "CloudFront distribution domain name"
+  default     = ""
 }
 
 variable "cloudfront_distribution_zone_id" {
   type        = string
   description = "CloudFront distribution hosted zone ID"
+  default     = ""
 }
 
 variable "tags" {

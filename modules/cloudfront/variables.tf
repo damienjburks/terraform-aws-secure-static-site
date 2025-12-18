@@ -84,11 +84,7 @@ variable "wait_for_deployment" {
   default     = true
 }
 
-variable "ignore_alias_conflicts" {
-  type        = bool
-  description = "Temporarily disable domain aliases to avoid CNAME conflicts during updates"
-  default     = false
-}
+
 
 variable "cache_control_header" {
   type        = string

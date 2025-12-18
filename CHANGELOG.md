@@ -5,6 +5,155 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2025-12-12
+
+### Added
+
+- **S3 Intelligent Tiering**: Automatic cost optimization for all S3 buckets (website and logs) with configurable tiering schedule
+- **S3 Force Destroy**: Added `force_destroy = true` to logs bucket for consistent cleanup behavior across all buckets
+- **Cost Optimization Documentation**: Added comprehensive cost optimization section explaining intelligent tiering benefits
+- **Security Module**: New dedicated security module for CloudTrail, monitoring, and security features
+
+### Changed
+
+- **CloudFront Price Class Default**: Improved default from `PriceClass_100` to `PriceClass_200` for better global coverage
+- **S3 Tiering Configuration**: Objects automatically move to Archive Access (90 days) and Deep Archive Access (180 days) for cost savings
+- **DNS Module Architecture**: Cleaned up DNS module to focus only on Route53 zone and record management (removed ACM certificate resources)
+
+### Fixed
+
+- **Architecture Separation**: Moved security features (DNS logging, DNSSEC, KMS encryption) from DNS module to dedicated security module
+- **Provider Configuration**: Removed unnecessary `aws.us_east_1` provider requirement from DNS module
+- **Module Dependencies**: Fixed circular dependencies and provider configuration conflicts
+
+### Technical Details
+
+- **Intelligent Tiering Schedule**: 30 days → IA, 90 days → Archive Access, 180 days → Deep Archive Access
+- **Cost Savings**: Can reduce storage costs by 40-60% for infrequently accessed content
+- **No Performance Impact**: No retrieval fees for frequent access patterns, automatic optimization
+- **Global Coverage**: PriceClass_200 includes Asia, Middle East, and Africa (excludes only South America and Oceania)
+- **Clean Architecture**: DNS module handles only Route53, Certificate module handles ACM, Security module handles monitoring
+
+### Configuration
+
+- **New Variable**: `enable_intelligent_tiering` (default: `true`) to control S3 Intelligent Tiering
+- **Security Variables**: Added CloudTrail and monitoring configuration variables
+- **Backward Compatible**: All existing configurations continue to work without changes
+
+## [1.1.0] - 2025-12-12
+
+### Added
+
+- **Smart Domain Handling**: Module now intelligently detects root domains vs subdomains and only adds `www` certificates/records for root domains
+- **Certificate Module**: New dedicated certificate module for ACM certificate creation and validation
+- **Auto Certificate Validation**: Automatic DNS validation of ACM certificates via Route53 (configurable)
+- **Proper Dependency Flow**: Fixed architecture to follow correct dependency chain: Route53 Zone → Certificate → CloudFront → DNS Records
+- **Subdomain Support**: Proper handling of subdomains (e.g., `app.example.com`) without creating invalid `www.app.example.com` records
+- **Certificate Auto-Validation Control**: New `auto_validate_certificate` variable to control whether certificates are validated automatically
+- **S3 Intelligent Tiering**: Automatic cost optimization by moving infrequently accessed objects to cheaper storage classes (90 days → Archive, 180 days → Deep Archive)
+- **S3 Force Destroy**: All buckets now have `force_destroy = true` for easier cleanup during development and testing
+- **Cost Optimization Features**: Intelligent tiering and bucket keys enabled by default for automatic cost savings
+
+### Changed
+
+- **Architecture Redesign**: Completely restructured module architecture to eliminate circular dependencies
+- **DNS Module Split**: DNS functionality split between zone creation and record creation for proper dependency management
+- **Certificate Handling**: Moved certificate creation to dedicated module with proper validation flow
+- **CloudFront Integration**: CloudFront now properly receives validated certificates and correct domain aliases
+- **Domain Detection Logic**: Added intelligent domain type detection using dot counting (`example.com` vs `app.example.com`)
+
+### Fixed
+
+- **Circular Dependencies**: Eliminated circular dependency issues between DNS, certificate, and CloudFront modules
+- **Certificate Validation Timing**: Fixed timing issues where CloudFront tried to use unvalidated certificates
+- **Subdomain Certificate Issues**: Fixed incorrect certificate creation for subdomains (no more `www.subdomain.example.com`)
+- **DNS Record Logic**: Fixed DNS record creation to only create appropriate records for each domain type
+
+### Technical Details
+
+- **Root Domain Logic**: Domains with exactly 2 parts (e.g., `example.com`) get both apex and www certificates/records
+- **Subdomain Logic**: Domains with 3+ parts (e.g., `app.example.com`) get only the specified subdomain
+- **Certificate Module**: Handles ACM certificate creation, DNS validation records, and certificate validation
+- **Dependency Chain**: Route53 Zone → Certificate (with validation) → CloudFront (with certificate) → DNS Records (pointing to CloudFront)
+
+### Migration Notes
+
+- **Existing Deployments**: May require certificate recreation due to architecture changes
+- **Subdomain Users**: Will see removal of incorrect `www` certificates and DNS records
+- **No Breaking Changes**: All existing variables remain compatible
+
+## [1.0.18] - 2025-12-12
+
+### Changed
+
+- **Conditional S3 Versioning**: S3 bucket versioning is now only enabled when replication is enabled. When replication is disabled, versioning is disabled since version control handles file versioning.
+
+### Important Notes
+
+- **S3 Versioning**: Versioning is only enabled when cross-region replication is enabled (AWS requirement). Otherwise, version control handles file versioning.
+
+## [1.0.17] - 2025-12-12
+
+### Changed
+
+- **CloudFront Without Domain Aliases**: CloudFront distribution no longer uses domain aliases, completely eliminating CNAME conflicts. Route 53 ALIAS records point to CloudFront's default domain.
+- **DNS-Level SSL**: SSL/TLS is handled by certificates associated with DNS rather than CloudFront domain aliases. This allows SSL to work without CloudFront claiming the custom domains.
+- **Simplified Architecture**: Removed ACM certificate attachment from CloudFront distribution since SSL is handled at the DNS level.
+
+### Removed
+
+- **CloudFront Domain Aliases**: Completely removed domain aliases from CloudFront to prevent CNAME conflicts.
+- **CloudFront ACM Integration**: Removed ACM certificate configuration from CloudFront since SSL is handled by DNS-level certificates.
+
+### Fixed
+
+- **CNAME Conflict Resolution**: Eliminated "CNAMEAlreadyExists" errors by not using CloudFront domain aliases at all.
+
+### Important Notes
+
+- **SSL Architecture**: SSL/HTTPS works through DNS-level certificate validation rather than CloudFront domain aliases.
+- **No CNAME Conflicts**: This architecture completely eliminates any possibility of CloudFront CNAME conflicts.
+- **Route 53 Routing**: Custom domains work through Route 53 ALIAS records pointing to CloudFront's default domain.
+
+## [1.0.16] - 2025-12-12
+
+### Fixed
+
+- **Restored SSL Functionality**: Reverted architecture to properly support SSL/HTTPS for custom domains using CloudFront domain aliases and ACM certificates. The previous approach of removing domain aliases broke SSL functionality.
+
+### Removed
+
+- **Ignore Alias Conflicts Workaround**: Removed the `ignore_alias_conflicts` variable and all associated workaround logic in favor of proper conflict resolution.
+
+### Changed
+
+- **Proper CNAME Conflict Handling**: The module now uses the standard CloudFront + ACM + Route 53 architecture. CNAME conflicts must be resolved by cleaning up conflicting CloudFront distributions rather than disabling SSL functionality.
+
+### Important Notes
+
+- **CNAME Conflicts**: If you encounter "CNAMEAlreadyExists" errors, you must identify and remove the conflicting CloudFront distribution. The module will not compromise SSL functionality to work around conflicts.
+- **SSL Support**: Full SSL/HTTPS support is maintained for custom domains through proper CloudFront domain aliases and ACM certificate integration.
+
+## [1.0.15] - 2025-12-12
+
+### Changed
+
+- **No CloudFront Domain Aliases**: CloudFront distribution no longer uses any domain aliases, completely eliminating CNAME conflicts. Route 53 ALIAS records point to CloudFront's default domain (e.g., `d123456789.cloudfront.net`).
+- **Simplified CloudFront Configuration**: Removed ACM certificate attachment from CloudFront distribution. CloudFront now uses its default certificate which covers `*.cloudfront.net` domains.
+- **DNS-Only Custom Domain Routing**: Custom domains work through Route 53 DNS routing only, without requiring CloudFront domain aliases.
+
+### Removed
+
+- **CloudFront Domain Aliases**: Completely removed domain aliases from CloudFront distribution to prevent any possibility of CNAME conflicts.
+- **CloudFront ACM Certificate**: Removed ACM certificate configuration from CloudFront since it's not needed without domain aliases.
+- **Ignore Alias Conflicts Workaround**: Removed the `ignore_alias_conflicts` variable and all associated workaround logic.
+
+### Important Notes
+
+- **SSL Limitation**: SSL/HTTPS will only work when accessing the CloudFront default domain directly (e.g., `https://d123456789.cloudfront.net`). Custom domains accessed via HTTPS will show certificate warnings since CloudFront's default certificate only covers `*.cloudfront.net`.
+- **HTTP Access**: Custom domains will work perfectly over HTTP (e.g., `http://example.com` → CloudFront → S3).
+- **No CNAME Conflicts**: This architecture completely eliminates any possibility of CloudFront CNAME conflicts.
+
 ## [1.0.14] - 2025-12-12
 
 ### Fixed
@@ -269,6 +418,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Lessons learned section covering S3 encryption behavior and KMS limitations
 - Example configuration demonstrating basic usage
 
+[1.0.18]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.18
+[1.0.17]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.17
+[1.0.16]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.16
+[1.0.15]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.15
 [1.0.14]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.14
 [1.0.13]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.13
 [1.0.12]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.12
