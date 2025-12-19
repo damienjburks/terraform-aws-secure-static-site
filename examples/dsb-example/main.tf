@@ -29,7 +29,8 @@ module "static_website" {
   primary_region          = var.primary_region
   failover_region         = var.failover_region
 
-  domain_name = "dev.devsecblueprint.com"
+  domain_name                 = "dev.devsecblueprint.com"
+  security_notification_email = var.security_notification_email
 
   tags = {
     Environment = "Development"

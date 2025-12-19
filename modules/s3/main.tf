@@ -378,8 +378,9 @@ resource "aws_s3_bucket_public_access_block" "logs" {
 }
 
 
-# Customer-managed KMS Encryption - Primary Website Bucket
-# Note: CloudFront OAC supports KMS encryption as of late 2023
+# S3-Managed Encryption - Primary Website Bucket
+# Note: CloudFront OAC cannot access KMS-encrypted objects due to anonymous requests
+# Using AES-256 (SSE-S3) for CloudFront OAC compatibility
 resource "aws_s3_bucket_server_side_encryption_configuration" "website_primary" {
   provider = aws.primary
 
@@ -387,15 +388,15 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "website_primary" 
 
   rule {
     apply_server_side_encryption_by_default {
-      kms_master_key_id = var.kms_key_arn_primary
-      sse_algorithm     = "aws:kms"
+      sse_algorithm = "AES256"
     }
     bucket_key_enabled = true
   }
 }
 
-# Customer-managed KMS Encryption - Failover Website Bucket
-# Note: CloudFront OAC supports KMS encryption as of late 2023
+# S3-Managed Encryption - Failover Website Bucket
+# Note: CloudFront OAC cannot access KMS-encrypted objects due to anonymous requests
+# Using AES-256 (SSE-S3) for CloudFront OAC compatibility
 resource "aws_s3_bucket_server_side_encryption_configuration" "website_failover" {
   provider = aws.failover
 
@@ -403,8 +404,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "website_failover"
 
   rule {
     apply_server_side_encryption_by_default {
-      kms_master_key_id = var.kms_key_arn_failover
-      sse_algorithm     = "aws:kms"
+      sse_algorithm = "AES256"
     }
     bucket_key_enabled = true
   }

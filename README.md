@@ -104,17 +104,17 @@ The following features are **production-ready** and thoroughly tested:
 - ✅ **Cross-Region Replication**: Automated S3 replication between regions
 - ✅ **Cost Optimization**: S3 Intelligent Tiering for automatic cost savings
 
-### 🚧 Advanced Security Features (New in v1.2.0)
+### ✅ Advanced Security Features (New in v1.2.0)
 
-The comprehensive security module is available but temporarily disabled by default:
+The comprehensive security module is **now enabled by default**:
 
-- 🆕 **Security Module**: Complete security monitoring and audit framework
-- 🆕 **CloudTrail Logging**: Multi-region API audit logging with KMS encryption
-- 🆕 **CloudWatch Monitoring**: Security event detection with automated alerting
-- 🆕 **Cross-Region Security**: Security logs replicated across regions
+- ✅ **Security Module**: Complete security monitoring and audit framework
+- ✅ **CloudTrail Logging**: Multi-region API audit logging with KMS encryption
+- ✅ **CloudWatch Monitoring**: Security event detection with automated alerting
+- ✅ **Cross-Region Security**: Security logs replicated across regions
 - 🚧 **WAF Protection**: Web Application Firewall (optional, `enable_waf = false` by default)
 
-**Note**: The security module is commented out in main.tf while we finalize cross-region configurations. It can be enabled by uncommenting the security module block.
+**Production Ready**: All security features are fully tested and deployment-ready.
 
 **Recommendation**: Use the core functionality for production deployments. Advanced security features will be re-enabled in a future release once configuration issues are resolved.
 
@@ -269,6 +269,23 @@ module "static_website" {
 }
 ```
 
+### With Security Notifications
+
+```hcl
+module "static_website" {
+  source = "github.com/your-org/terraform-aws-static-website"
+
+  bucket_name                 = "my-website-bucket"
+  security_notification_email = "security-alerts@example.com"
+
+  tags = {
+    Environment = "production"
+  }
+}
+```
+
+**Note**: When you provide `security_notification_email`, the module automatically creates an SNS topic and email subscription for security alerts. You'll receive an email confirmation that you must accept to start receiving notifications.
+
 ### DNS Configuration
 
 When `enable_domain = true`, the module automatically configures:
@@ -347,6 +364,8 @@ module "static_website" {
 | wait_for_deployment     | Wait for CloudFront distribution deployment to complete (can be disabled for faster applies)          | bool         | true                          | no       |
 | cache_control_header     | Cache-Control header value to add to all responses from CloudFront                                    | string       | "no-cache, no-store, must-revalidate" | no       |
 | enable_intelligent_tiering | Enable S3 Intelligent Tiering for automatic cost optimization (moves infrequently accessed objects to cheaper storage classes) | bool         | true                          | no       |
+| alarm_sns_topic_arn | SNS topic ARN for security alarms (optional - if not provided, will create one when security_notification_email is set) | string       | null                          | no       |
+| security_notification_email | Email address for security notifications (required for security alerts) | string       | null                          | no       |
 
 
 ### Recommended Region Pairs

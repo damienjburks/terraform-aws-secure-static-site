@@ -306,17 +306,18 @@ resource "aws_iam_role_policy" "cloudtrail_cloudwatch" {
       {
         Effect = "Allow"
         Action = [
-          "logs:PutLogEvents"
+          "logs:PutLogEvents",
+          "logs:CreateLogStream"
         ]
-        Resource = "${aws_cloudwatch_log_group.cloudtrail.arn}:log-stream:${aws_cloudwatch_log_stream.cloudtrail.name}"
+        Resource = "${aws_cloudwatch_log_group.cloudtrail.arn}:*"
       },
       {
         Effect = "Allow"
         Action = [
-          "logs:CreateLogGroup",
-          "logs:CreateLogStream"
+          "logs:DescribeLogStreams",
+          "logs:DescribeLogGroups"
         ]
-        Resource = aws_cloudwatch_log_group.cloudtrail.arn
+        Resource = "*"
       }
     ]
   })
@@ -592,6 +593,26 @@ resource "aws_kms_key" "cloudtrail" {
           "kms:DescribeKey"
         ]
         Resource = "*"
+      },
+      {
+        Sid    = "AllowCloudTrailSNSAccess"
+        Effect = "Allow"
+        Principal = {
+          Service = "cloudtrail.amazonaws.com"
+        }
+        Action = [
+          "kms:Encrypt",
+          "kms:Decrypt",
+          "kms:ReEncrypt*",
+          "kms:GenerateDataKey*",
+          "kms:DescribeKey"
+        ]
+        Resource = "*"
+        Condition = {
+          StringEquals = {
+            "aws:SourceAccount" = data.aws_caller_identity.current.account_id
+          }
+        }
       }
     ]
   })
@@ -621,6 +642,33 @@ resource "aws_sns_topic" "cloudtrail" {
   tags = var.tags
 }
 
+# SNS Topic Policy for CloudTrail (allows CloudTrail to publish)
+resource "aws_sns_topic_policy" "cloudtrail" {
+  provider = aws.primary
+
+  arn = aws_sns_topic.cloudtrail.arn
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "AllowCloudTrailPublish"
+        Effect = "Allow"
+        Principal = {
+          Service = "cloudtrail.amazonaws.com"
+        }
+        Action   = "SNS:Publish"
+        Resource = aws_sns_topic.cloudtrail.arn
+        Condition = {
+          StringEquals = {
+            "aws:SourceAccount" = data.aws_caller_identity.current.account_id
+          }
+        }
+      }
+    ]
+  })
+}
+
 # CloudTrail
 resource "aws_cloudtrail" "main" {
   provider = aws.primary
@@ -638,23 +686,15 @@ resource "aws_cloudtrail" "main" {
   cloud_watch_logs_group_arn = "${aws_cloudwatch_log_group.cloudtrail.arn}:*"
   cloud_watch_logs_role_arn  = aws_iam_role.cloudtrail_cloudwatch.arn
 
-  event_selector {
-    read_write_type                  = "All"
-    include_management_events        = true
-    exclude_management_event_sources = []
-
-    data_resource {
-      type   = "AWS::S3::Object"
-      values = ["arn:aws:s3:::*/*"]
-    }
-
-  }
+  # Management events are logged by default
+  # Data events can be added later if needed
 
   tags = var.tags
 
   depends_on = [
     aws_s3_bucket_policy.cloudtrail_logs,
-    aws_iam_role_policy.cloudtrail_cloudwatch
+    aws_iam_role_policy.cloudtrail_cloudwatch,
+    aws_sns_topic_policy.cloudtrail
   ]
 }
 
@@ -678,6 +718,83 @@ resource "aws_sns_topic" "security_s3_notifications_failover" {
   tags = var.tags
 }
 
+# SNS Topic Policy for Primary Region Security S3 Notifications (allows S3 to publish)
+resource "aws_sns_topic_policy" "security_s3_notifications" {
+  provider = aws.primary
+
+  arn = aws_sns_topic.security_s3_notifications.arn
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "AllowS3Publish"
+        Effect = "Allow"
+        Principal = {
+          Service = "s3.amazonaws.com"
+        }
+        Action   = "SNS:Publish"
+        Resource = aws_sns_topic.security_s3_notifications.arn
+        Condition = {
+          StringEquals = {
+            "aws:SourceAccount" = data.aws_caller_identity.current.account_id
+          }
+        }
+      }
+    ]
+  })
+}
+
+# SNS Topic Policy for Failover Region Security S3 Notifications (allows S3 to publish)
+resource "aws_sns_topic_policy" "security_s3_notifications_failover" {
+  provider = aws.failover
+
+  arn = aws_sns_topic.security_s3_notifications_failover.arn
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "AllowS3Publish"
+        Effect = "Allow"
+        Principal = {
+          Service = "s3.amazonaws.com"
+        }
+        Action   = "SNS:Publish"
+        Resource = aws_sns_topic.security_s3_notifications_failover.arn
+        Condition = {
+          StringEquals = {
+            "aws:SourceAccount" = data.aws_caller_identity.current.account_id
+          }
+        }
+      }
+    ]
+  })
+}
+
+# SNS Topic for Security Alerts (CloudWatch Alarms)
+resource "aws_sns_topic" "security_alerts" {
+  count = var.security_notification_email != null && var.alarm_sns_topic_arn == null ? 1 : 0
+
+  provider = aws.primary
+
+  name              = "${var.bucket_prefix}-security-alerts"
+  kms_master_key_id = aws_kms_key.cloudtrail.id
+
+  tags = var.tags
+}
+
+# SNS Topic Subscription for Security Alerts Email
+resource "aws_sns_topic_subscription" "security_alerts_email" {
+  count = var.security_notification_email != null && var.alarm_sns_topic_arn == null ? 1 : 0
+
+  provider = aws.primary
+
+  topic_arn = aws_sns_topic.security_alerts[0].arn
+  protocol  = "email"
+  endpoint  = var.security_notification_email
+}
+
 # S3 Event Notifications - CloudTrail Logs Bucket
 resource "aws_s3_bucket_notification" "cloudtrail_logs" {
   provider = aws.primary
@@ -689,7 +806,7 @@ resource "aws_s3_bucket_notification" "cloudtrail_logs" {
     events    = ["s3:ObjectCreated:*"]
   }
 
-  depends_on = [aws_sns_topic.security_s3_notifications]
+  depends_on = [aws_sns_topic_policy.security_s3_notifications]
 }
 
 # S3 Event Notifications - CloudTrail Access Logs Bucket
@@ -703,7 +820,7 @@ resource "aws_s3_bucket_notification" "cloudtrail_access_logs" {
     events    = ["s3:ObjectCreated:*"]
   }
 
-  depends_on = [aws_sns_topic.security_s3_notifications]
+  depends_on = [aws_sns_topic_policy.security_s3_notifications]
 }
 
 # S3 bucket notifications for failover security buckets (use failover region SNS)
@@ -717,7 +834,7 @@ resource "aws_s3_bucket_notification" "cloudtrail_logs_failover" {
     events    = ["s3:ObjectCreated:*"]
   }
 
-  depends_on = [aws_sns_topic.security_s3_notifications_failover]
+  depends_on = [aws_sns_topic_policy.security_s3_notifications_failover]
 }
 
 resource "aws_s3_bucket_notification" "cloudtrail_access_logs_failover" {
@@ -730,7 +847,7 @@ resource "aws_s3_bucket_notification" "cloudtrail_access_logs_failover" {
     events    = ["s3:ObjectCreated:*"]
   }
 
-  depends_on = [aws_sns_topic.security_s3_notifications_failover]
+  depends_on = [aws_sns_topic_policy.security_s3_notifications_failover]
 }
 
 # CloudWatch Alarms for Security Events
@@ -746,7 +863,9 @@ resource "aws_cloudwatch_metric_alarm" "root_access" {
   statistic           = "Sum"
   threshold           = "1"
   alarm_description   = "This metric monitors root access events"
-  alarm_actions       = var.alarm_sns_topic_arn != null ? [var.alarm_sns_topic_arn] : []
+  alarm_actions = var.alarm_sns_topic_arn != null ? [var.alarm_sns_topic_arn] : (
+    var.security_notification_email != null ? [aws_sns_topic.security_alerts[0].arn] : []
+  )
 
   tags = var.tags
 }
@@ -777,7 +896,9 @@ resource "aws_cloudwatch_metric_alarm" "console_signin_failures" {
   statistic           = "Sum"
   threshold           = "3"
   alarm_description   = "This metric monitors console signin failures"
-  alarm_actions       = var.alarm_sns_topic_arn != null ? [var.alarm_sns_topic_arn] : []
+  alarm_actions = var.alarm_sns_topic_arn != null ? [var.alarm_sns_topic_arn] : (
+    var.security_notification_email != null ? [aws_sns_topic.security_alerts[0].arn] : []
+  )
 
   tags = var.tags
 }
@@ -808,7 +929,9 @@ resource "aws_cloudwatch_metric_alarm" "unauthorized_api_calls" {
   statistic           = "Sum"
   threshold           = "1"
   alarm_description   = "This metric monitors unauthorized API calls"
-  alarm_actions       = var.alarm_sns_topic_arn != null ? [var.alarm_sns_topic_arn] : []
+  alarm_actions = var.alarm_sns_topic_arn != null ? [var.alarm_sns_topic_arn] : (
+    var.security_notification_email != null ? [aws_sns_topic.security_alerts[0].arn] : []
+  )
 
   tags = var.tags
 }

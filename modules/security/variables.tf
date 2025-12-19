@@ -17,7 +17,13 @@ variable "cloudwatch_log_retention_days" {
 
 variable "alarm_sns_topic_arn" {
   type        = string
-  description = "SNS topic ARN for security alarms (optional)"
+  description = "SNS topic ARN for security alarms (optional - if not provided, will create one)"
+  default     = null
+}
+
+variable "security_notification_email" {
+  type        = string
+  description = "Email address for security notifications (required for security alerts)"
   default     = null
 }
 

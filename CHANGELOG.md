@@ -18,6 +18,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Optional S3 Event Notifications**: New `enable_s3_notifications` variable for optional S3 event monitoring via SNS
 - **Enhanced WAF Configuration**: Improved conditional WAF resources with better rule management
 - **Deployment Reliability**: Significantly improved deployment success rate with better error handling
+- **Email Notifications**: Added `security_notification_email` variable for automatic SNS topic creation and email subscription for security alerts
+  - Automatically creates SNS topic when email is provided
+  - Connects all CloudWatch security alarms to email notifications
+  - Supports both custom SNS topic ARN or automatic topic creation
 
 ### Fixed
 
@@ -27,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **S3 Ownership Controls**: Fixed CloudFront logging bucket to use `BucketOwnerPreferred` instead of `BucketOwnerEnforced`
 - **WAF Configuration**: Simplified WAF rules and made all WAF resources conditional based on `enable_waf` variable
 - **CloudFront Price Class**: Updated default from `PriceClass_100` to `PriceClass_200` for better global coverage
+- **CloudFront OAC and KMS Incompatibility**: Fixed website bucket encryption to use AES-256 instead of KMS for CloudFront OAC compatibility
 
 ### Changed
 
@@ -51,10 +56,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **WAF Logging**: Made WAF CloudWatch logging conditional and properly scoped to avoid resource conflicts
 - **Deployment Reliability**: Significantly improved deployment success rate by removing problematic configurations
 - **Global Coverage**: PriceClass_200 includes North America, Europe, Asia, Middle East, and Africa (excludes only South America and Oceania)
+- **Website Bucket Encryption**: Changed from KMS to AES-256 encryption for CloudFront OAC compatibility (CloudFront cannot access KMS-encrypted objects)
+- **Email Notifications**: SNS email subscriptions require manual confirmation via email before alerts are delivered
 
 ### Configuration
 
-- **Security Module**: Currently disabled by default in main.tf while configuration issues are resolved
+- **Security Module**: Now enabled by default with comprehensive monitoring and audit capabilities
 - **WAF Default**: `enable_waf` remains `false` by default for simpler deployments
 - **S3 Notifications**: `enable_s3_notifications` defaults to `false` for reliable deployments (can be enabled if needed)
 - **Price Class**: `PriceClass_200` now default for better global performance (North America, Europe, Asia, Middle East, Africa)

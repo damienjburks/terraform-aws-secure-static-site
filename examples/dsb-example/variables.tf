@@ -21,3 +21,9 @@ variable "failover_region" {
   description = "Failover AWS region for S3 bucket"
   default     = "us-west-2"
 }
+
+variable "security_notification_email" {
+  type        = string
+  description = "Email address for security notifications"
+  default     = null
+}
