@@ -658,12 +658,22 @@ resource "aws_cloudtrail" "main" {
   ]
 }
 
-# SNS Topic for Security S3 Event Notifications
+# SNS Topic for Security S3 Event Notifications (Primary Region)
 resource "aws_sns_topic" "security_s3_notifications" {
   provider = aws.primary
 
   name              = "${var.bucket_prefix}-security-s3-notifications"
   kms_master_key_id = aws_kms_key.cloudtrail.id
+
+  tags = var.tags
+}
+
+# SNS Topic for Security S3 Event Notifications (Failover Region)
+resource "aws_sns_topic" "security_s3_notifications_failover" {
+  provider = aws.failover
+
+  name              = "${var.bucket_prefix}-security-s3-notifications-failover"
+  kms_master_key_id = var.kms_key_arn_failover
 
   tags = var.tags
 }
@@ -696,18 +706,18 @@ resource "aws_s3_bucket_notification" "cloudtrail_access_logs" {
   depends_on = [aws_sns_topic.security_s3_notifications]
 }
 
-# S3 bucket notifications for failover security buckets
+# S3 bucket notifications for failover security buckets (use failover region SNS)
 resource "aws_s3_bucket_notification" "cloudtrail_logs_failover" {
   provider = aws.failover
 
   bucket = aws_s3_bucket.cloudtrail_logs_failover.id
 
   topic {
-    topic_arn = aws_sns_topic.security_s3_notifications.arn
+    topic_arn = aws_sns_topic.security_s3_notifications_failover.arn
     events    = ["s3:ObjectCreated:*"]
   }
 
-  depends_on = [aws_sns_topic.security_s3_notifications]
+  depends_on = [aws_sns_topic.security_s3_notifications_failover]
 }
 
 resource "aws_s3_bucket_notification" "cloudtrail_access_logs_failover" {
@@ -716,11 +726,11 @@ resource "aws_s3_bucket_notification" "cloudtrail_access_logs_failover" {
   bucket = aws_s3_bucket.cloudtrail_access_logs_failover.id
 
   topic {
-    topic_arn = aws_sns_topic.security_s3_notifications.arn
+    topic_arn = aws_sns_topic.security_s3_notifications_failover.arn
     events    = ["s3:ObjectCreated:*"]
   }
 
-  depends_on = [aws_sns_topic.security_s3_notifications]
+  depends_on = [aws_sns_topic.security_s3_notifications_failover]
 }
 
 # CloudWatch Alarms for Security Events

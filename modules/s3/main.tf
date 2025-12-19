@@ -230,7 +230,7 @@ resource "aws_s3_bucket_ownership_controls" "logs" {
   bucket = aws_s3_bucket.logs.id
 
   rule {
-    object_ownership = "BucketOwnerEnforced"
+    object_ownership = "BucketOwnerPreferred"
   }
 }
 
@@ -909,33 +909,9 @@ resource "aws_s3_bucket_lifecycle_configuration" "access_logs" {
 }
 
 
-# MFA Delete Protection - Primary Website Bucket
-resource "aws_s3_bucket_versioning" "website_primary_mfa" {
-  provider = aws.primary
-
-  bucket = aws_s3_bucket.website_primary.id
-
-  versioning_configuration {
-    status     = "Enabled"
-    mfa_delete = "Enabled"
-  }
-
-  depends_on = [aws_s3_bucket_versioning.website_primary]
-}
-
-# MFA Delete Protection - Failover Website Bucket
-resource "aws_s3_bucket_versioning" "website_failover_mfa" {
-  provider = aws.failover
-
-  bucket = aws_s3_bucket.website_failover.id
-
-  versioning_configuration {
-    status     = "Enabled"
-    mfa_delete = "Enabled"
-  }
-
-  depends_on = [aws_s3_bucket_versioning.website_failover]
-}
+# MFA Delete Protection removed - cannot be managed via Terraform
+# MFA delete requires manual configuration via AWS CLI with MFA device
+# This is intentionally commented out as it causes deployment failures
 
 
 # Bucket Policy - Logs Bucket
@@ -991,13 +967,13 @@ resource "aws_s3_bucket_logging" "website_primary" {
   target_prefix = "primary-website-logs/"
 }
 
-# S3 Access Logging - Failover Website Bucket
+# S3 Access Logging - Failover Website Bucket (logs to failover region bucket)
 resource "aws_s3_bucket_logging" "website_failover" {
   provider = aws.failover
 
   bucket = aws_s3_bucket.website_failover.id
 
-  target_bucket = aws_s3_bucket.access_logs.id
+  target_bucket = aws_s3_bucket.access_logs_failover.id
   target_prefix = "failover-website-logs/"
 }
 
@@ -1021,95 +997,181 @@ resource "aws_s3_bucket_logging" "access_logs" {
   target_prefix = "self-access-logs/"
 }
 
-# SNS Topic for S3 Event Notifications
-resource "aws_sns_topic" "s3_notifications" {
+# SNS Topics for S3 Event Notifications (per region) - Optional
+resource "aws_sns_topic" "s3_notifications_primary" {
+  count = var.enable_s3_notifications ? 1 : 0
+
   provider = aws.primary
 
-  name              = "${var.bucket_name}-s3-notifications"
+  name              = "${var.bucket_name}-s3-notifications-primary"
   kms_master_key_id = var.kms_key_arn_primary
 
   tags = var.tags
 }
 
-# S3 Event Notifications - Primary Website Bucket
+resource "aws_sns_topic" "s3_notifications_failover" {
+  count = var.enable_s3_notifications ? 1 : 0
+
+  provider = aws.failover
+
+  name              = "${var.bucket_name}-s3-notifications-failover"
+  kms_master_key_id = var.kms_key_arn_failover
+
+  tags = var.tags
+}
+
+# Data source for current AWS account ID
+data "aws_caller_identity" "current" {}
+
+# SNS Topic Policy for Primary Region (allows S3 to publish) - Optional
+resource "aws_sns_topic_policy" "s3_notifications_primary" {
+  count = var.enable_s3_notifications ? 1 : 0
+
+  provider = aws.primary
+
+  arn = aws_sns_topic.s3_notifications_primary[0].arn
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "AllowS3Publish"
+        Effect = "Allow"
+        Principal = {
+          Service = "s3.amazonaws.com"
+        }
+        Action   = "SNS:Publish"
+        Resource = aws_sns_topic.s3_notifications_primary[0].arn
+        Condition = {
+          StringEquals = {
+            "aws:SourceAccount" = data.aws_caller_identity.current.account_id
+          }
+        }
+      }
+    ]
+  })
+}
+
+# SNS Topic Policy for Failover Region (allows S3 to publish) - Optional
+resource "aws_sns_topic_policy" "s3_notifications_failover" {
+  count = var.enable_s3_notifications ? 1 : 0
+
+  provider = aws.failover
+
+  arn = aws_sns_topic.s3_notifications_failover[0].arn
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "AllowS3Publish"
+        Effect = "Allow"
+        Principal = {
+          Service = "s3.amazonaws.com"
+        }
+        Action   = "SNS:Publish"
+        Resource = aws_sns_topic.s3_notifications_failover[0].arn
+        Condition = {
+          StringEquals = {
+            "aws:SourceAccount" = data.aws_caller_identity.current.account_id
+          }
+        }
+      }
+    ]
+  })
+}
+
+# S3 Event Notifications - Primary Website Bucket (Optional)
 resource "aws_s3_bucket_notification" "website_primary" {
+  count = var.enable_s3_notifications ? 1 : 0
+
   provider = aws.primary
 
   bucket = aws_s3_bucket.website_primary.id
 
   topic {
-    topic_arn = aws_sns_topic.s3_notifications.arn
+    topic_arn = aws_sns_topic.s3_notifications_primary[0].arn
     events    = ["s3:ObjectCreated:*", "s3:ObjectRemoved:*"]
   }
 
-  depends_on = [aws_sns_topic.s3_notifications]
+  depends_on = [aws_sns_topic_policy.s3_notifications_primary]
 }
 
-# S3 Event Notifications - Failover Website Bucket
+# S3 Event Notifications - Failover Website Bucket (Optional)
 resource "aws_s3_bucket_notification" "website_failover" {
+  count = var.enable_s3_notifications ? 1 : 0
+
   provider = aws.failover
 
   bucket = aws_s3_bucket.website_failover.id
 
   topic {
-    topic_arn = aws_sns_topic.s3_notifications.arn
+    topic_arn = aws_sns_topic.s3_notifications_failover[0].arn
     events    = ["s3:ObjectCreated:*", "s3:ObjectRemoved:*"]
   }
 
-  depends_on = [aws_sns_topic.s3_notifications]
+  depends_on = [aws_sns_topic_policy.s3_notifications_failover]
 }
 
-# S3 Event Notifications - Logs Bucket
+# S3 Event Notifications - Logs Bucket (Optional)
 resource "aws_s3_bucket_notification" "logs" {
+  count = var.enable_s3_notifications ? 1 : 0
+
   provider = aws.primary
 
   bucket = aws_s3_bucket.logs.id
 
   topic {
-    topic_arn = aws_sns_topic.s3_notifications.arn
+    topic_arn = aws_sns_topic.s3_notifications_primary[0].arn
     events    = ["s3:ObjectCreated:*"]
   }
 
-  depends_on = [aws_sns_topic.s3_notifications]
+  depends_on = [aws_sns_topic_policy.s3_notifications_primary]
 }
 
-# S3 Event Notifications - Access Logs Bucket
+# S3 Event Notifications - Access Logs Bucket (Optional)
 resource "aws_s3_bucket_notification" "access_logs" {
+  count = var.enable_s3_notifications ? 1 : 0
+
   provider = aws.primary
 
   bucket = aws_s3_bucket.access_logs.id
 
   topic {
-    topic_arn = aws_sns_topic.s3_notifications.arn
+    topic_arn = aws_sns_topic.s3_notifications_primary[0].arn
     events    = ["s3:ObjectCreated:*"]
   }
 
-  depends_on = [aws_sns_topic.s3_notifications]
+  depends_on = [aws_sns_topic_policy.s3_notifications_primary]
 }
 
-# S3 bucket notifications for failover buckets
+# S3 bucket notifications for failover buckets (Optional)
 resource "aws_s3_bucket_notification" "logs_failover" {
+  count = var.enable_s3_notifications ? 1 : 0
+
   provider = aws.failover
 
   bucket = aws_s3_bucket.logs_failover.id
 
   topic {
-    topic_arn = aws_sns_topic.s3_notifications.arn
+    topic_arn = aws_sns_topic.s3_notifications_failover[0].arn
     events    = ["s3:ObjectCreated:*"]
   }
 
-  depends_on = [aws_sns_topic.s3_notifications]
+  depends_on = [aws_sns_topic_policy.s3_notifications_failover]
 }
 
 resource "aws_s3_bucket_notification" "access_logs_failover" {
+  count = var.enable_s3_notifications ? 1 : 0
+
   provider = aws.failover
 
   bucket = aws_s3_bucket.access_logs_failover.id
 
   topic {
-    topic_arn = aws_sns_topic.s3_notifications.arn
+    topic_arn = aws_sns_topic.s3_notifications_failover[0].arn
     events    = ["s3:ObjectCreated:*"]
   }
 
-  depends_on = [aws_sns_topic.s3_notifications]
+  depends_on = [aws_sns_topic_policy.s3_notifications_failover]
 }

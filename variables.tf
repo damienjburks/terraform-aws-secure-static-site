@@ -54,7 +54,7 @@ variable "kms_key_arn" {
 variable "price_class" {
   type        = string
   description = "CloudFront price class (PriceClass_All, PriceClass_200, PriceClass_100)"
-  default     = "PriceClass_100"
+  default     = "PriceClass_200"
 
   validation {
     condition     = contains(["PriceClass_All", "PriceClass_200", "PriceClass_100"], var.price_class)
@@ -152,6 +152,18 @@ variable "enable_intelligent_tiering" {
   type        = bool
   description = "Enable S3 Intelligent Tiering for automatic cost optimization (moves infrequently accessed objects to cheaper storage classes)"
   default     = true
+}
+
+variable "enable_s3_notifications" {
+  type        = bool
+  description = "Enable S3 event notifications via SNS (optional monitoring feature)"
+  default     = false
+}
+
+variable "enable_waf" {
+  type        = bool
+  description = "Enable AWS WAF Web ACL for CloudFront protection (advanced security feature)"
+  default     = false
 }
 
 

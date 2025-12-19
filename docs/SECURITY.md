@@ -28,6 +28,7 @@ This document provides a comprehensive overview of the security measures, compli
 ### 1. Defense-in-Depth Security Model
 
 #### Network Security Layer
+
 - **AWS WAF v2** with 6 managed rule sets:
   - Core Rule Set (OWASP Top 10 protection)
   - Known Bad Inputs Rule Set with Log4j vulnerability protection
@@ -40,6 +41,7 @@ This document provides a comprehensive overview of the security measures, compli
 - **DDoS protection** via CloudFront integration
 
 #### Data Protection Layer
+
 - **Customer-managed KMS encryption** for all data at rest
 - **Multi-region KMS key deployment** (primary + failover)
 - **S3 bucket encryption** using AES-256 with KMS keys
@@ -49,6 +51,7 @@ This document provides a comprehensive overview of the security measures, compli
 ### 2. Access Control & Identity Management
 
 #### S3 Bucket Security
+
 - **Origin Access Control (OAC)** for CloudFront integration
 - **Bucket policies** with least privilege access
 - **Public access blocking** enabled on all buckets
@@ -56,6 +59,7 @@ This document provides a comprehensive overview of the security measures, compli
 - **Bucket ownership controls** set to BucketOwnerEnforced
 
 #### IAM Security
+
 - **Principle of least privilege** IAM policies
 - **Service-specific IAM roles** with condition-based access
 - **Cross-region replication roles** with minimal permissions
@@ -64,6 +68,7 @@ This document provides a comprehensive overview of the security measures, compli
 ### 3. Monitoring & Logging
 
 #### CloudTrail Configuration
+
 - **Management event logging** enabled
 - **Data event logging** for S3 buckets
 - **Log file validation** enabled
@@ -72,6 +77,7 @@ This document provides a comprehensive overview of the security measures, compli
 - **KMS encryption** for CloudTrail logs
 
 #### CloudWatch Monitoring
+
 - **Extended log retention** (365+ days)
 - **Security metric filters** for unauthorized access attempts
 - **CloudWatch alarms** for security events
@@ -80,6 +86,7 @@ This document provides a comprehensive overview of the security measures, compli
 ### 4. Data Resilience & Recovery
 
 #### Cross-Region Replication
+
 - **S3 cross-region replication** for all buckets
 - **Failover buckets** in secondary region (us-west-2)
 - **Versioning enabled** on all buckets
@@ -87,6 +94,7 @@ This document provides a comprehensive overview of the security measures, compli
 - **Delete marker replication** for complete data synchronization
 
 #### Backup & Lifecycle Management
+
 - **Automated lifecycle transitions** to cost-effective storage classes
 - **Configurable retention periods** for different data types
 - **Noncurrent version management** with automatic cleanup
@@ -95,6 +103,7 @@ This document provides a comprehensive overview of the security measures, compli
 ### 5. DNS Security
 
 #### Route 53 Security Features
+
 - **DNSSEC implementation** with key signing keys
 - **DNS query logging** with KMS encryption
 - **Hosted zone protection** with comprehensive monitoring
@@ -103,6 +112,7 @@ This document provides a comprehensive overview of the security measures, compli
 ### 6. Event-Driven Security
 
 #### S3 Event Notifications
+
 - **Real-time event notifications** via SNS for all buckets
 - **Object creation/deletion monitoring**
 - **Security event alerting**
@@ -111,24 +121,28 @@ This document provides a comprehensive overview of the security measures, compli
 ## Security Best Practices Implemented
 
 ### 1. Zero-Trust Architecture
+
 - No implicit trust relationships
 - Verify all connections and communications
 - Encrypt all data in transit and at rest
 - Apply least privilege access controls
 
 ### 2. Infrastructure Security
+
 - **Infrastructure as Code** with version control
 - **Security scanning** in CI/CD pipeline
 - **Immutable infrastructure** deployment patterns
 - **Security drift detection** and remediation
 
 ### 3. Data Classification & Protection
+
 - **Sensitive data encryption** at multiple layers
 - **Data residency controls** via regional deployment
 - **Data loss prevention** through comprehensive logging
 - **Privacy controls** with configurable data retention
 
 ### 4. Incident Response Preparation
+
 - **Comprehensive logging** for forensic analysis
 - **Automated alerting** for security events
 - **Audit trails** for compliance requirements
@@ -137,6 +151,7 @@ This document provides a comprehensive overview of the security measures, compli
 ## Security Configuration Details
 
 ### KMS Key Management
+
 ```terraform
 # Customer-managed KMS keys with automatic rotation
 resource "aws_kms_key" "primary" {
@@ -153,6 +168,7 @@ resource "aws_kms_key" "primary" {
 ```
 
 ### WAF Configuration
+
 ```terraform
 # Comprehensive WAF with multiple managed rule sets
 resource "aws_wafv2_web_acl" "cloudfront_waf" {
@@ -169,6 +185,7 @@ resource "aws_wafv2_web_acl" "cloudfront_waf" {
 ```
 
 ### S3 Security Configuration
+
 ```terraform
 # S3 bucket with comprehensive security
 resource "aws_s3_bucket" "website" {
@@ -184,16 +201,19 @@ resource "aws_s3_bucket" "website" {
 ## Security Monitoring & Alerting
 
 ### CloudWatch Metrics
+
 - **Security events**: Unauthorized API calls, root access attempts
 - **Performance metrics**: Request rates, error rates, latency
 - **Operational metrics**: Replication status, encryption status
 
 ### SNS Notifications
+
 - **CloudTrail events**: API calls, configuration changes
 - **S3 events**: Object creation, deletion, access attempts
 - **Security alarms**: Threshold breaches, anomalous activity
 
 ### Log Analysis
+
 - **Centralized logging** in CloudWatch Log Groups
 - **Structured logging** with JSON format
 - **Log retention policies** for compliance requirements
@@ -202,12 +222,14 @@ resource "aws_s3_bucket" "website" {
 ## Compliance & Audit
 
 ### Audit Trail
+
 - **Complete API call logging** via CloudTrail
 - **S3 access logging** for all bucket operations
 - **DNS query logging** for domain access patterns
 - **WAF logging** for web application security events
 
 ### Compliance Reporting
+
 - **Security compliance dashboards** with real-time metrics
 - **Automated compliance checking** via security scanning tools
 - **Regular security assessments** with detailed reporting
@@ -216,12 +238,14 @@ resource "aws_s3_bucket" "website" {
 ## Security Validation
 
 ### Automated Security Testing
+
 - **Infrastructure security scanning** with tfsec and checkov
 - **Vulnerability assessment** of all infrastructure components
 - **Configuration drift detection** and automatic remediation
 - **Security policy validation** before deployment
 
 ### Security Controls Testing
+
 - **Access control validation** with IAM policy testing
 - **Encryption verification** for all data stores
 - **Network security testing** with WAF rule validation
@@ -230,12 +254,14 @@ resource "aws_s3_bucket" "website" {
 ## Incident Response
 
 ### Detection
+
 - **Real-time security monitoring** with CloudWatch alarms
 - **Anomaly detection** using AWS security services
 - **Log analysis** for security event correlation
 - **Automated alerting** via SNS notifications
 
 ### Response Procedures
+
 1. **Immediate containment** - Automatic blocking via WAF
 2. **Investigation** - Log analysis and forensic examination
 3. **Mitigation** - Security control adjustments
@@ -245,12 +271,14 @@ resource "aws_s3_bucket" "website" {
 ## Security Maintenance
 
 ### Regular Updates
+
 - **Security patch management** for all infrastructure components
 - **WAF rule updates** to address new threats
 - **KMS key rotation** on scheduled intervals
 - **Certificate renewal** with automated processes
 
 ### Security Reviews
+
 - **Quarterly security assessments** with external validation
 - **Annual penetration testing** by certified professionals
 - **Continuous compliance monitoring** with automated tools
@@ -259,12 +287,14 @@ resource "aws_s3_bucket" "website" {
 ## Cost Optimization with Security
 
 ### Intelligent Storage Management
+
 - **S3 Intelligent Tiering** for automatic cost optimization
 - **Lifecycle policies** for predictable cost management
 - **Cross-region replication** with storage class optimization
 - **Log retention policies** balancing compliance and cost
 
 ### Monitoring Cost Efficiency
+
 - **CloudWatch cost optimization** with appropriate retention periods
 - **KMS usage optimization** with efficient key management
 - **WAF cost monitoring** with request pattern analysis
@@ -279,6 +309,6 @@ For questions or security concerns, please review the monitoring dashboards and 
 
 ---
 
-**Last Updated**: December 2024
-**Security Review Date**: December 2024
-**Next Review Due**: March 2025
+**Last Updated**: December 2025
+**Security Review Date**: December 2025
+**Next Review Due**: March 2026

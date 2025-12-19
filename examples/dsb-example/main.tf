@@ -24,6 +24,8 @@ module "static_website" {
   enable_security_headers = true
   enable_spa_routing      = true
   create_route53_zone     = true
+  enable_waf              = true
+  enable_s3_notifications = true
   primary_region          = var.primary_region
   failover_region         = var.failover_region
 

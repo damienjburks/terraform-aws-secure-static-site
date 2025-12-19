@@ -45,6 +45,12 @@ variable "enable_intelligent_tiering" {
   default     = true
 }
 
+variable "enable_s3_notifications" {
+  type        = bool
+  description = "Enable S3 event notifications via SNS (optional feature)"
+  default     = false
+}
+
 variable "tags" {
   type        = map(string)
   description = "Tags to apply to S3 buckets"

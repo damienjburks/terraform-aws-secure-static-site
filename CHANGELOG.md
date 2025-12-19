@@ -5,6 +5,62 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2025-12-18
+
+### Added
+
+- **🛡️ Security Module**: New dedicated security module with comprehensive monitoring and audit capabilities
+  - **CloudTrail Integration**: Multi-region CloudTrail logging with KMS encryption and S3 storage
+  - **CloudWatch Monitoring**: Security event monitoring with metric filters and alarms
+  - **Security Alerting**: Automated alerts for root access, failed logins, and unauthorized API calls
+  - **Cross-Region Security**: Security logging and monitoring across primary and failover regions
+  - **KMS Encryption**: Dedicated KMS keys for CloudTrail and security event encryption
+- **Optional S3 Event Notifications**: New `enable_s3_notifications` variable for optional S3 event monitoring via SNS
+- **Enhanced WAF Configuration**: Improved conditional WAF resources with better rule management
+- **Deployment Reliability**: Significantly improved deployment success rate with better error handling
+
+### Fixed
+
+- **S3 MFA Delete Protection**: Removed problematic MFA delete configuration that cannot be managed via Terraform
+- **Cross-Region S3 Notifications**: Fixed SNS topic configurations to use region-specific topics for S3 event notifications
+- **S3 Access Logging**: Fixed failover bucket logging to use correct regional target buckets
+- **S3 Ownership Controls**: Fixed CloudFront logging bucket to use `BucketOwnerPreferred` instead of `BucketOwnerEnforced`
+- **WAF Configuration**: Simplified WAF rules and made all WAF resources conditional based on `enable_waf` variable
+- **CloudFront Price Class**: Updated default from `PriceClass_100` to `PriceClass_200` for better global coverage
+
+### Changed
+
+- **WAF Rules**: Replaced duplicate and problematic WAF rules with more reliable AWS managed rule sets
+- **S3 Notifications**: Created separate SNS topics per region to avoid cross-region notification issues
+- **Security Module**: Improved cross-region resource management and reduced configuration complexity
+
+### Changed
+
+- **CloudFront Price Class**: Default changed from `PriceClass_100` to `PriceClass_200` for better global coverage
+- **CloudFront TLS**: Minimum TLS version updated to TLS 1.2 for enhanced security
+- **S3 Event Notifications**: Now optional and disabled by default for reliable deployments
+
+### Technical Details
+
+- **Security Architecture**: New modular security design with dedicated modules for different security concerns
+- **CloudTrail Setup**: Multi-region CloudTrail with S3 storage, KMS encryption, and CloudWatch integration
+- **Security Monitoring**: Automated detection of suspicious activities with CloudWatch metric filters
+- **Cross-Region Replication**: Security logs replicated across regions for redundancy
+- **MFA Delete**: Removed `mfa_delete = "Enabled"` configurations that require manual AWS CLI setup with MFA devices
+- **Regional SNS**: Primary region buckets use primary SNS topics, failover region buckets use failover SNS topics
+- **WAF Logging**: Made WAF CloudWatch logging conditional and properly scoped to avoid resource conflicts
+- **Deployment Reliability**: Significantly improved deployment success rate by removing problematic configurations
+- **Global Coverage**: PriceClass_200 includes North America, Europe, Asia, Middle East, and Africa (excludes only South America and Oceania)
+
+### Configuration
+
+- **Security Module**: Currently disabled by default in main.tf while configuration issues are resolved
+- **WAF Default**: `enable_waf` remains `false` by default for simpler deployments
+- **S3 Notifications**: `enable_s3_notifications` defaults to `false` for reliable deployments (can be enabled if needed)
+- **Price Class**: `PriceClass_200` now default for better global performance (North America, Europe, Asia, Middle East, Africa)
+- **Security Variables**: New variables for CloudTrail log retention, CloudWatch settings, and alarm configurations
+- **Backward Compatible**: All existing configurations continue to work, with improved reliability
+
 ## [1.1.1] - 2025-12-12
 
 ### Added

@@ -7,8 +7,10 @@ terraform {
   }
 }
 
-# WAF Web ACL for CloudFront
+# WAF Web ACL for CloudFront (optional)
 resource "aws_wafv2_web_acl" "cloudfront_waf" {
+  count = var.enable_waf ? 1 : 0
+
   name        = "cloudfront-waf-${var.primary_origin_bucket_id}"
   description = "WAF Web ACL for CloudFront distribution"
   scope       = "CLOUDFRONT"
@@ -86,9 +88,9 @@ resource "aws_wafv2_web_acl" "cloudfront_waf" {
     }
   }
 
-  # AWS Managed Rule - Known Bad Inputs (includes Log4j protection)
+  # AWS Managed Rule - Anonymous IP List
   rule {
-    name     = "AWSManagedRulesKnownBadInputsRuleSet"
+    name     = "AWSManagedRulesAnonymousIpList"
     priority = 4
 
     override_action {
@@ -97,47 +99,21 @@ resource "aws_wafv2_web_acl" "cloudfront_waf" {
 
     statement {
       managed_rule_group_statement {
-        name        = "AWSManagedRulesKnownBadInputsRuleSet"
+        name        = "AWSManagedRulesAnonymousIpList"
         vendor_name = "AWS"
-
-        # Explicit Log4j rule overrides for maximum protection
-        rule_action_override {
-          name = "Log4JRCE_BODY"
-          action_to_use {
-            block {}
-          }
-        }
-        rule_action_override {
-          name = "Log4JRCE_QUERYSTRING"
-          action_to_use {
-            block {}
-          }
-        }
-        rule_action_override {
-          name = "Log4JRCE_HEADER"
-          action_to_use {
-            block {}
-          }
-        }
-        rule_action_override {
-          name = "Log4JRCE_URI"
-          action_to_use {
-            block {}
-          }
-        }
       }
     }
 
     visibility_config {
       cloudwatch_metrics_enabled = true
-      metric_name                = "KnownBadInputsLog4jMetric"
+      metric_name                = "AnonymousIpListMetric"
       sampled_requests_enabled   = true
     }
   }
 
-  # AWS Managed Rules AMR Rule Set (Anti-Malware Rules)
+  # AWS Managed Rule - Linux Operating System
   rule {
-    name     = "AWSManagedRulesAMRRuleSet"
+    name     = "AWSManagedRulesLinuxRuleSet"
     priority = 5
 
     override_action {
@@ -146,14 +122,14 @@ resource "aws_wafv2_web_acl" "cloudfront_waf" {
 
     statement {
       managed_rule_group_statement {
-        name        = "AWSManagedRulesAMRRuleSet"
+        name        = "AWSManagedRulesLinuxRuleSet"
         vendor_name = "AWS"
       }
     }
 
     visibility_config {
       cloudwatch_metrics_enabled = true
-      metric_name                = "AWSManagedRulesAMRRuleSetMetric"
+      metric_name                = "LinuxRuleSetMetric"
       sampled_requests_enabled   = true
     }
   }
@@ -190,8 +166,10 @@ resource "aws_wafv2_web_acl" "cloudfront_waf" {
   tags = var.tags
 }
 
-# KMS Key for WAF logs
+# KMS Key for WAF logs (only if WAF is enabled)
 resource "aws_kms_key" "waf_logs" {
+  count = var.enable_waf ? 1 : 0
+
   description             = "KMS key for WAF log encryption"
   deletion_window_in_days = 30
   enable_key_rotation     = true
@@ -232,21 +210,25 @@ resource "aws_kms_key" "waf_logs" {
 # Data source for current account
 data "aws_caller_identity" "current" {}
 
-# CloudWatch Log Group for WAF
+# CloudWatch Log Group for WAF (only if WAF is enabled)
 resource "aws_cloudwatch_log_group" "waf_logs" {
+  count = var.enable_waf ? 1 : 0
+
   name              = "aws-waf-logs-${var.primary_origin_bucket_id}"
   retention_in_days = 365
-  kms_key_id        = aws_kms_key.waf_logs.arn
+  kms_key_id        = var.enable_waf ? aws_kms_key.waf_logs[0].arn : null
 
   tags = var.tags
 
   depends_on = [aws_kms_key.waf_logs]
 }
 
-# WAF Logging Configuration
+# WAF Logging Configuration (only if WAF is enabled)
 resource "aws_wafv2_web_acl_logging_configuration" "main" {
-  resource_arn            = aws_wafv2_web_acl.cloudfront_waf.arn
-  log_destination_configs = [aws_cloudwatch_log_group.waf_logs.arn]
+  count = var.enable_waf ? 1 : 0
+
+  resource_arn            = aws_wafv2_web_acl.cloudfront_waf[0].arn
+  log_destination_configs = [aws_cloudwatch_log_group.waf_logs[0].arn]
 
   depends_on = [aws_cloudwatch_log_group.waf_logs]
 }
@@ -423,8 +405,8 @@ resource "aws_cloudfront_distribution" "main" {
     }
   }
 
-  # WAF Association
-  web_acl_id = aws_wafv2_web_acl.cloudfront_waf.arn
+  # WAF Association (optional)
+  web_acl_id = var.enable_waf ? aws_wafv2_web_acl.cloudfront_waf[0].arn : null
 
   # Restrictions
   restrictions {

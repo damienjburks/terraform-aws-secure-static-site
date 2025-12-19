@@ -66,6 +66,12 @@ variable "enable_security_headers" {
   default     = true
 }
 
+variable "enable_waf" {
+  type        = bool
+  description = "Enable AWS WAF Web ACL for CloudFront protection"
+  default     = false
+}
+
 variable "content_security_policy" {
   type        = string
   description = "Content Security Policy header value. Use 'default-src 'self'' for strict policy, or customize for your needs (e.g., allow external resources)"

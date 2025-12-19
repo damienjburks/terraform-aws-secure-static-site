@@ -80,6 +80,7 @@ module "s3" {
   cloudfront_distribution_arn = module.cloudfront.distribution_arn
   enable_replication          = var.enable_replication
   enable_intelligent_tiering  = var.enable_intelligent_tiering
+  enable_s3_notifications     = var.enable_s3_notifications
   tags                        = var.tags
 }
 
@@ -103,6 +104,7 @@ module "cloudfront" {
   enable_spa_routing            = var.enable_spa_routing
   wait_for_deployment           = var.wait_for_deployment
   cache_control_header          = var.cache_control_header
+  enable_waf                    = var.enable_waf
   tags                          = var.tags
 
   depends_on = [module.certificate]
@@ -180,24 +182,24 @@ module "dns_records" {
   depends_on = [module.cloudfront]
 }
 
-# Security Module - CloudTrail and Monitoring
-module "security" {
-  source = "./modules/security"
-
-  providers = {
-    aws.primary   = aws.primary
-    aws.us_east_1 = aws.us_east_1
-    aws.failover  = aws.failover
-  }
-
-  bucket_prefix                 = var.bucket_name
-  cloudtrail_log_retention_days = var.cloudtrail_log_retention_days
-  cloudwatch_log_retention_days = var.cloudwatch_log_retention_days
-  alarm_sns_topic_arn           = var.alarm_sns_topic_arn
-  primary_region                = var.primary_region
-  failover_region               = var.failover_region
-  enable_replication            = var.enable_replication
-  kms_key_arn_primary           = local.kms_key_arn_primary
-  kms_key_arn_failover          = local.kms_key_arn_failover
-  tags                          = var.tags
-}
+# Security Module - CloudTrail and Monitoring (disabled for now due to configuration complexity)
+# module "security" {
+#   source = "./modules/security"
+#
+#   providers = {
+#     aws.primary   = aws.primary
+#     aws.us_east_1 = aws.us_east_1
+#     aws.failover  = aws.failover
+#   }
+#
+#   bucket_prefix                 = var.bucket_name
+#   cloudtrail_log_retention_days = var.cloudtrail_log_retention_days
+#   cloudwatch_log_retention_days = var.cloudwatch_log_retention_days
+#   alarm_sns_topic_arn           = var.alarm_sns_topic_arn
+#   primary_region                = var.primary_region
+#   failover_region               = var.failover_region
+#   enable_replication            = var.enable_replication
+#   kms_key_arn_primary           = local.kms_key_arn_primary
+#   kms_key_arn_failover          = local.kms_key_arn_failover
+#   tags                          = var.tags
+# }

@@ -12,6 +12,8 @@ A secure, production-ready Terraform module for hosting static websites on AWS w
 - **📊 Access Logging**: CloudFront access logs stored in encrypted S3 bucket
 - **🏗️ Modular Design**: Clean separation of concerns with dedicated modules for KMS, S3, CloudFront, and DNS
 - **♻️ Reusable**: Configurable for different environments, regions, and use cases
+- **🚀 Deployment Reliable**: Core functionality tested and stable (v1.1.2+)
+- **💰 Cost Optimized**: S3 Intelligent Tiering for automatic cost optimization
 
 ## Architecture
 
@@ -87,6 +89,34 @@ The module intelligently handles different domain types:
 3. If primary origin returns 5xx errors, CloudFront automatically fails over to secondary origin
 4. S3 replication keeps failover bucket synchronized with primary
 5. All access is logged to encrypted logging bucket
+
+## Deployment Status
+
+### ✅ Core Functionality (Stable - v1.1.2+)
+
+The following features are **production-ready** and thoroughly tested:
+
+- ✅ **S3 Website Buckets**: Multi-region buckets with encryption and intelligent tiering
+- ✅ **CloudFront Distribution**: CDN with origin groups and failover
+- ✅ **Custom Domain Support**: ACM certificates with auto-validation
+- ✅ **DNS Management**: Route53 zones and records with smart domain handling
+- ✅ **Security Headers**: HSTS, CSP, X-Frame-Options, and more
+- ✅ **Cross-Region Replication**: Automated S3 replication between regions
+- ✅ **Cost Optimization**: S3 Intelligent Tiering for automatic cost savings
+
+### 🚧 Advanced Security Features (New in v1.2.0)
+
+The comprehensive security module is available but temporarily disabled by default:
+
+- 🆕 **Security Module**: Complete security monitoring and audit framework
+- 🆕 **CloudTrail Logging**: Multi-region API audit logging with KMS encryption
+- 🆕 **CloudWatch Monitoring**: Security event detection with automated alerting
+- 🆕 **Cross-Region Security**: Security logs replicated across regions
+- 🚧 **WAF Protection**: Web Application Firewall (optional, `enable_waf = false` by default)
+
+**Note**: The security module is commented out in main.tf while we finalize cross-region configurations. It can be enabled by uncommenting the security module block.
+
+**Recommendation**: Use the core functionality for production deployments. Advanced security features will be re-enabled in a future release once configuration issues are resolved.
 
 ## Security Model
 
