@@ -104,6 +104,12 @@ variable "allowed_countries" {
   default     = null
 }
 
+variable "ignore_alias_conflicts" {
+  type        = bool
+  description = "Temporarily disable domain aliases to avoid CNAME conflicts during updates"
+  default     = false
+}
+
 variable "tags" {
   type        = map(string)
   description = "Tags to apply to resources"

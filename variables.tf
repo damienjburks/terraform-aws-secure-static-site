@@ -54,7 +54,7 @@ variable "kms_key_arn" {
 variable "price_class" {
   type        = string
   description = "CloudFront price class (PriceClass_All, PriceClass_200, PriceClass_100)"
-  default     = "PriceClass_200"
+  default     = "PriceClass_100"
 
   validation {
     condition     = contains(["PriceClass_All", "PriceClass_200", "PriceClass_100"], var.price_class)
@@ -130,39 +130,9 @@ variable "cache_control_header" {
   default     = "no-cache, no-store, must-revalidate"
 }
 
-variable "cloudtrail_log_retention_days" {
-  type        = number
-  description = "Number of days to retain CloudTrail logs in S3"
-  default     = 365
-}
-
-variable "cloudwatch_log_retention_days" {
-  type        = number
-  description = "Number of days to retain CloudWatch logs"
-  default     = 365
-}
-
-variable "alarm_sns_topic_arn" {
-  type        = string
-  description = "SNS topic ARN for security alarms (optional - if not provided, will create one)"
-  default     = null
-}
-
-variable "security_notification_email" {
-  type        = string
-  description = "Email address for security notifications (required for security alerts)"
-  default     = null
-}
-
-variable "enable_intelligent_tiering" {
+variable "ignore_alias_conflicts" {
   type        = bool
-  description = "Enable S3 Intelligent Tiering for automatic cost optimization (moves infrequently accessed objects to cheaper storage classes)"
-  default     = true
-}
-
-variable "enable_s3_notifications" {
-  type        = bool
-  description = "Enable S3 event notifications via SNS (optional monitoring feature)"
+  description = "Temporarily disable domain aliases to avoid CNAME conflicts during updates (set to true if you get CNAMEAlreadyExists errors)"
   default     = false
 }
 
@@ -171,9 +141,4 @@ variable "enable_waf" {
   description = "Enable AWS WAF Web ACL for CloudFront protection (advanced security feature)"
   default     = false
 }
-
-
-
-
-
 

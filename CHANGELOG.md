@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.1] - 2025-12-19
+
+### Fixed
+
+- **Documentation Accuracy**: Complete rewrite of README to accurately reflect current module architecture and implementation
+- **Code Structure**: Fixed main.tf to properly reference DNS module for certificate management instead of non-existent certificate module
+- **Variable References**: Corrected all variable references to match actual module structure and capabilities
+- **Diagnostics**: Resolved all Terraform diagnostics errors in main module and CloudFront module
+
+### Added
+
+- **WAF Integration**: Re-enabled AWS WAF Web ACL support that was documented but missing from implementation
+- **Ignore Alias Conflicts**: Added missing `ignore_alias_conflicts` variable for CNAME conflict resolution
+
+### Changed
+
+- **Module Documentation**: Updated architecture diagrams and component relationships to reflect actual 5-module structure
+- **Usage Examples**: Corrected all examples to use variables that actually exist in the implementation
+
 ## [1.2.0] - 2025-12-18
 
 ### Added
@@ -488,6 +507,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [1.0.14]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.14
 [1.0.13]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.13
 [1.0.12]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.12
+[1.2.1]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.2.1
+[1.2.0]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.2.0
 [1.0.11]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.11
 [1.0.10]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.10
 [1.0.9]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.9
