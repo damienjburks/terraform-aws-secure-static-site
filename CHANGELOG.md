@@ -5,6 +5,40 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.2] - 2025-12-21
+
+### Changed
+
+- **🌍 Global CloudFront Deployment**: Updated default CloudFront price class from `PriceClass_100` to `PriceClass_All` for complete worldwide coverage
+  - **Global Edge Locations**: Now includes all AWS CloudFront edge locations across all continents
+  - **Africa Coverage**: Full coverage including Nigeria and all African regions
+  - **Performance Optimization**: Improved global performance with edge locations in North America, Europe, Asia, Middle East, Africa, South America, and Oceania
+  - **Cost vs Performance**: Higher cost but significantly better global performance and user experience
+
+### Updated
+
+- **Module Architecture**: Fixed main.tf to use correct modular architecture with separate certificate, DNS zone, and DNS records modules
+- **Variable Completeness**: Added all missing variables to variables.tf for complete module functionality
+- **Output References**: Updated outputs.tf to reference correct module structure
+- **Example Configuration**: Updated dsb-example to explicitly use PriceClass_All for global deployment
+
+### Technical Details
+
+- **Price Class Coverage**: 
+  - `PriceClass_100`: North America, Europe only (previous default)
+  - `PriceClass_200`: North America, Europe, Asia, Middle East, Africa
+  - `PriceClass_All`: All AWS edge locations worldwide (new default)
+- **Global Performance**: Reduced latency for users worldwide, especially in Africa, South America, and Oceania
+- **Edge Location Count**: Access to all 400+ AWS CloudFront edge locations globally
+- **Backward Compatible**: Existing deployments can override with `price_class = "PriceClass_100"` if needed
+
+### Configuration
+
+- **Default Change**: `price_class` variable default changed from `"PriceClass_100"` to `"PriceClass_All"`
+- **Cost Impact**: Higher CloudFront costs due to global edge location usage
+- **Performance Benefit**: Significantly improved global user experience and reduced latency
+- **Customizable**: Can still be set to `PriceClass_100` or `PriceClass_200` for cost optimization if global coverage not needed
+
 ## [1.2.1] - 2025-12-19
 
 ### Fixed
@@ -49,7 +83,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **S3 Access Logging**: Fixed failover bucket logging to use correct regional target buckets
 - **S3 Ownership Controls**: Fixed CloudFront logging bucket to use `BucketOwnerPreferred` instead of `BucketOwnerEnforced`
 - **WAF Configuration**: Simplified WAF rules and made all WAF resources conditional based on `enable_waf` variable
-- **CloudFront Price Class**: Updated default from `PriceClass_100` to `PriceClass_200` for better global coverage
+- **CloudFront Price Class**: Updated default from `PriceClass_100` to `PriceClass_All` for complete global coverage
 - **CloudFront OAC and KMS Incompatibility**: Fixed website bucket encryption to use AES-256 instead of KMS for CloudFront OAC compatibility
 
 ### Changed
@@ -60,7 +94,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **CloudFront Price Class**: Default changed from `PriceClass_100` to `PriceClass_200` for better global coverage
+- **CloudFront Price Class**: Default changed from `PriceClass_100` to `PriceClass_All` for complete global coverage
 - **CloudFront TLS**: Minimum TLS version updated to TLS 1.2 for enhanced security
 - **S3 Event Notifications**: Now optional and disabled by default for reliable deployments
 
@@ -74,7 +108,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Regional SNS**: Primary region buckets use primary SNS topics, failover region buckets use failover SNS topics
 - **WAF Logging**: Made WAF CloudWatch logging conditional and properly scoped to avoid resource conflicts
 - **Deployment Reliability**: Significantly improved deployment success rate by removing problematic configurations
-- **Global Coverage**: PriceClass_200 includes North America, Europe, Asia, Middle East, and Africa (excludes only South America and Oceania)
+- **Global Coverage**: PriceClass_All includes all AWS CloudFront edge locations worldwide (North America, Europe, Asia, Middle East, Africa, South America, and Oceania)
 - **Website Bucket Encryption**: Changed from KMS to AES-256 encryption for CloudFront OAC compatibility (CloudFront cannot access KMS-encrypted objects)
 - **Email Notifications**: SNS email subscriptions require manual confirmation via email before alerts are delivered
 
@@ -83,7 +117,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Security Module**: Now enabled by default with comprehensive monitoring and audit capabilities
 - **WAF Default**: `enable_waf` remains `false` by default for simpler deployments
 - **S3 Notifications**: `enable_s3_notifications` defaults to `false` for reliable deployments (can be enabled if needed)
-- **Price Class**: `PriceClass_200` now default for better global performance (North America, Europe, Asia, Middle East, Africa)
+- **Price Class**: `PriceClass_All` now default for complete global performance (all AWS CloudFront edge locations worldwide)
 - **Security Variables**: New variables for CloudTrail log retention, CloudWatch settings, and alarm configurations
 - **Backward Compatible**: All existing configurations continue to work, with improved reliability
 
@@ -98,7 +132,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **CloudFront Price Class Default**: Improved default from `PriceClass_100` to `PriceClass_200` for better global coverage
+- **CloudFront Price Class Default**: Improved default from `PriceClass_100` to `PriceClass_All` for complete global coverage
 - **S3 Tiering Configuration**: Objects automatically move to Archive Access (90 days) and Deep Archive Access (180 days) for cost savings
 - **DNS Module Architecture**: Cleaned up DNS module to focus only on Route53 zone and record management (removed ACM certificate resources)
 
@@ -113,7 +147,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Intelligent Tiering Schedule**: 30 days → IA, 90 days → Archive Access, 180 days → Deep Archive Access
 - **Cost Savings**: Can reduce storage costs by 40-60% for infrequently accessed content
 - **No Performance Impact**: No retrieval fees for frequent access patterns, automatic optimization
-- **Global Coverage**: PriceClass_200 includes Asia, Middle East, and Africa (excludes only South America and Oceania)
+- **Global Coverage**: PriceClass_All includes all AWS CloudFront edge locations worldwide for optimal global performance
 - **Clean Architecture**: DNS module handles only Route53, Certificate module handles ACM, Security module handles monitoring
 
 ### Configuration
@@ -507,6 +541,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [1.0.14]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.14
 [1.0.13]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.13
 [1.0.12]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.12
+[1.2.2]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.2.2
 [1.2.1]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.2.1
 [1.2.0]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.2.0
 [1.0.11]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.11

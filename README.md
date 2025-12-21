@@ -5,6 +5,7 @@ A secure, production-ready Terraform module for hosting static websites on AWS w
 ## Features
 
 - **🔒 Security First**: Private S3 buckets with AES-256 encryption, CloudFront OAC, Block Public Access, and comprehensive security headers (HSTS, CSP, X-Frame-Options, etc.)
+- **🌍 Global Deployment**: CloudFront distribution with PriceClass_All by default, utilizing all AWS edge locations worldwide for optimal performance
 - **🌍 Multi-Region Failover**: Automatic failover between configurable AWS regions with CloudFront origin groups
 - **🔄 Cross-Region Replication**: Automated S3 replication from primary to failover region for data durability
 - **⚡ CloudFront CDN**: Global content delivery with HTTPS-only access and TLS 1.2 minimum
@@ -217,6 +218,26 @@ module "static_website" {
 }
 ```
 
+### Global Deployment
+
+```hcl
+module "static_website" {
+  source = "github.com/your-org/terraform-aws-static-website"
+
+  bucket_name = "my-global-website"
+  price_class = "PriceClass_All"  # Uses all CloudFront edge locations worldwide (default)
+
+  tags = {
+    Environment = "production"
+    Scope       = "global"
+  }
+}
+```
+
+**Note**: `PriceClass_All` is now the default, providing optimal global performance by utilizing all AWS CloudFront edge locations worldwide. For cost optimization, you can use:
+- `PriceClass_200` - Excludes South America and Oceania (lower cost)
+- `PriceClass_100` - North America and Europe only (lowest cost)
+
 ### DNS Configuration
 
 When `enable_domain = true`, the module automatically configures:
@@ -276,7 +297,7 @@ module "static_website" {
 | auto_validate_certificate | Automatically validate ACM certificate using DNS records in Route53 (set to false if domain is managed outside AWS) | bool         | true                                  | no       |
 | logging_enabled           | Enable CloudFront access logging                                                                                    | bool         | true                                  | no       |
 | kms_key_arn               | ARN of existing KMS key for S3 encryption (creates new keys if not provided)                                        | string       | null                                  | no       |
-| price_class               | CloudFront price class (PriceClass_All, PriceClass_200, PriceClass_100)                                             | string       | "PriceClass_100"                      | no       |
+| price_class               | CloudFront price class (PriceClass_All, PriceClass_200, PriceClass_100)                                             | string       | "PriceClass_All"                      | no       |
 | comment                   | Comment for the CloudFront distribution                                                                             | string       | "Static website distribution"         | no       |
 | tags                      | Tags to apply to all resources                                                                                      | map(string)  | {}                                    | no       |
 | primary_region            | Primary AWS region for S3 bucket                                                                                    | string       | "us-east-1"                           | no       |

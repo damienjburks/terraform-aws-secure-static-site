@@ -26,6 +26,7 @@ module "static_website" {
   create_route53_zone     = true
   enable_waf              = true
   enable_s3_notifications = true
+  price_class             = "PriceClass_All" # Global deployment
   primary_region          = var.primary_region
   failover_region         = var.failover_region
 

@@ -95,8 +95,8 @@ module "cloudfront" {
   logging_bucket_domain         = var.logging_enabled ? module.s3.logs_bucket_domain_name : null
   price_class                   = var.price_class
   comment                       = var.comment
-  acm_certificate_arn           = var.enable_domain ? module.dns[0].certificate_arn : null
-  domain_aliases                = var.enable_domain ? concat([var.domain_name], ["www.${var.domain_name}"], var.alternate_domain_names) : []
+  acm_certificate_arn           = var.enable_domain ? module.certificate[0].certificate_arn : null
+  domain_aliases                = local.domain_aliases
   enable_security_headers       = var.enable_security_headers
   content_security_policy       = var.content_security_policy
   enable_spa_routing            = var.enable_spa_routing
@@ -116,23 +116,65 @@ locals {
     : "validation_passed"
   )
 
+  # Determine zone ID for certificate validation and DNS records
+  zone_id = var.enable_domain ? (
+    var.create_route53_zone ? module.dns_zone[0].zone_id : var.existing_route53_zone_id
+  ) : null
 
+  # Domain aliases for CloudFront - only add www for root domains
+  is_root_domain = var.enable_domain ? length(split(".", var.domain_name)) == 2 : false
+  domain_aliases = var.enable_domain ? (
+    local.is_root_domain ? [var.domain_name, "www.${var.domain_name}"] : [var.domain_name]
+  ) : []
 }
 
-# DNS Module (conditional - only if custom domain is enabled)
-module "dns" {
-  count  = var.enable_domain ? 1 : 0
+# DNS Zone Module - Route53 Zone only (created first if needed)
+module "dns_zone" {
+  count  = var.enable_domain && var.create_route53_zone ? 1 : 0
   source = "./modules/dns"
+
+  enabled                         = true
+  domain_name                     = var.domain_name
+  create_hosted_zone              = true
+  create_dns_records              = false # Only create zone, not records
+  create_www_records              = false # Not creating records in this module
+  existing_zone_id                = null
+  cloudfront_distribution_domain  = ""
+  cloudfront_distribution_zone_id = ""
+  tags                            = var.tags
+}
+
+# Certificate Module - ACM Certificate (with optional auto-validation)
+module "certificate" {
+  count  = var.enable_domain ? 1 : 0
+  source = "./modules/certificate"
 
   providers = {
     aws.us_east_1 = aws.us_east_1
   }
 
+  enabled                = true
+  domain_name            = var.domain_name
+  alternate_domain_names = var.alternate_domain_names
+  auto_validate          = var.auto_validate_certificate
+  zone_id                = var.auto_validate_certificate ? local.zone_id : null
+  tags                   = var.tags
+}
+
+# DNS Records Module - A/AAAA records pointing to CloudFront (after CloudFront exists)
+module "dns_records" {
+  count  = var.enable_domain ? 1 : 0
+  source = "./modules/dns"
+
   enabled                         = true
   domain_name                     = var.domain_name
-  create_hosted_zone              = var.create_route53_zone
-  existing_zone_id                = var.existing_route53_zone_id
+  create_hosted_zone              = false                # Zone already exists
+  create_dns_records              = true                 # Create DNS records
+  create_www_records              = local.is_root_domain # Only for root domains
+  existing_zone_id                = local.zone_id
   cloudfront_distribution_domain  = module.cloudfront.distribution_domain_name
   cloudfront_distribution_zone_id = module.cloudfront.distribution_hosted_zone_id
   tags                            = var.tags
+
+  depends_on = [module.cloudfront]
 }

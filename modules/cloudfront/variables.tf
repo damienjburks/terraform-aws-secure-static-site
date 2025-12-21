@@ -39,7 +39,7 @@ variable "logging_bucket_domain" {
 variable "price_class" {
   type        = string
   description = "CloudFront price class"
-  default     = "PriceClass_100"
+  default     = "PriceClass_All"
 }
 
 variable "comment" {
