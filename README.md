@@ -116,25 +116,27 @@ When `enable_security_headers = true` (default), CloudFront adds the following h
 
 ### AWS WAF Protection
 
-When `enable_waf = true`, the module creates and configures:
+When `enable_waf = true`, the module creates a static website optimized WAF configuration:
 
-- **WAF Web ACL**: Comprehensive security rules for CloudFront protection
-- **Rate Limiting**: Protection against DDoS and brute force attacks
-- **IP Reputation**: Blocks known malicious IP addresses
-- **Geographic Restrictions**: Optional country-based access control
-- **SQL Injection Protection**: Blocks common SQL injection attempts
-- **XSS Protection**: Prevents cross-site scripting attacks
+- **Static Asset Protection**: Explicit allow rules for .html, .js, .css, .svg, .png, .ico, .jpg, .jpeg, .gif, .webp files
+- **Permissive Design**: Optimized for static websites, allows international users and VPN traffic
+- **Rate Limiting**: 10,000 requests per IP (increased from 2,000 for better user experience)
+- **IP Reputation**: Blocks only known malicious IP addresses (not VPNs or proxies)
 - **CloudWatch Logging**: Detailed WAF logs with KMS encryption
 - **Metrics**: CloudWatch metrics for monitoring WAF activity
 
 **WAF Rules Included:**
 
-- AWS Managed Core Rule Set
-- AWS Managed Known Bad Inputs Rule Set
-- AWS Managed SQL Database Rule Set
-- AWS Managed Linux Operating System Rule Set
-- Rate limiting (2000 requests per 5 minutes per IP)
-- IP reputation list blocking
+- Explicit allow rules for common static file extensions
+- IP reputation filtering (malicious IPs only)
+- Rate limiting protection (10,000 req/IP)
+- Comprehensive logging and monitoring
+
+**Removed Restrictive Rules:**
+- ❌ Anonymous IP blocking (was blocking VPNs and international users)
+- ❌ Linux rule set (was blocking legitimate requests)
+- ❌ Common rule set (was too restrictive for static sites)
+- ❌ Known bad inputs (unnecessary for static content)
 
 ### Single Page Application (SPA) Routing
 

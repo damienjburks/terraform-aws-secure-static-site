@@ -5,6 +5,36 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.5] - 2025-12-21
+
+### Fixed
+
+- **WAF Blocking Issues**: Completely redesigned WAF configuration to resolve blocking of legitimate static website requests. Removed overly restrictive AWS managed rule sets that were causing international users and VPN users to be blocked.
+- **International User Access**: Fixed WAF rules that were blocking users outside the US, VPN users, and proxy users by removing the Anonymous IP List rule set.
+- **Static Asset Delivery**: Resolved WAF blocking of common static file extensions (.html, .js, .css, .svg, .png, .ico) by implementing explicit allow rules.
+
+### Changed
+
+- **WAF Rule Strategy**: Replaced restrictive AWS managed rule sets with explicit allow rules for static website assets and minimal security filtering.
+- **Rate Limiting**: Increased rate limit from 2,000 to 10,000 requests per IP for better user experience with static content.
+- **WAF Rules Removed**: Eliminated problematic rule sets including Anonymous IP List, Linux Rule Set, Common Rule Set, and Known Bad Inputs that were inappropriate for static websites.
+
+### Added
+
+- **Explicit Allow Rules**: Added specific WAF rules to explicitly allow common static file extensions:
+  - HTML files (.html)
+  - JavaScript files (.js)
+  - CSS files (.css)
+  - Image files (.svg, .png, .ico, .jpg, .jpeg, .gif, .webp)
+- **Static Website Optimized WAF**: New WAF configuration specifically designed for static websites with minimal false positives.
+
+### Technical Details
+
+- **Permissive Design**: WAF now uses a "default allow" approach with explicit rules for static assets rather than restrictive blocking rules.
+- **IP Reputation Only**: Maintains security by blocking only known malicious IP addresses while allowing VPNs, proxies, and international traffic.
+- **Enhanced Monitoring**: All WAF rules include CloudWatch metrics for better visibility into request patterns and blocking behavior.
+- **International Friendly**: Removed geographic and anonymous IP restrictions that were causing access issues for legitimate international users.
+
 ## [1.2.4] - 2025-12-21
 
 ### Fixed

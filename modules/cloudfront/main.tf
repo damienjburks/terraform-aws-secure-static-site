@@ -12,63 +12,219 @@ resource "aws_wafv2_web_acl" "cloudfront_waf" {
   count = var.enable_waf ? 1 : 0
 
   name        = "cloudfront-waf-${var.primary_origin_bucket_id}"
-  description = "WAF Web ACL for CloudFront distribution"
+  description = "WAF Web ACL for CloudFront distribution - Static Website Optimized"
   scope       = "CLOUDFRONT"
 
   default_action {
     allow {}
   }
 
-  # AWS Managed Rule - Core Rule Set
+  # Allow static assets explicitly
   rule {
-    name     = "AWSManagedRulesCommonRuleSet"
+    name     = "AllowStaticAssets"
     priority = 1
 
-    override_action {
-      none {}
+    action {
+      allow {}
     }
 
     statement {
-      managed_rule_group_statement {
-        name        = "AWSManagedRulesCommonRuleSet"
-        vendor_name = "AWS"
+      byte_match_statement {
+        search_string = ".html"
+        field_to_match {
+          uri_path {}
+        }
+        text_transformation {
+          priority = 0
+          type     = "LOWERCASE"
+        }
+        positional_constraint = "ENDS_WITH"
       }
     }
 
     visibility_config {
       cloudwatch_metrics_enabled = true
-      metric_name                = "CommonRuleSetMetric"
+      metric_name                = "AllowStaticAssetsMetric"
       sampled_requests_enabled   = true
     }
   }
 
-  # AWS Managed Rule - Known Bad Inputs
+  # Allow JavaScript files
   rule {
-    name     = "AWSManagedRulesKnownBadInputsRuleSet"
+    name     = "AllowJavaScript"
     priority = 2
 
-    override_action {
-      none {}
+    action {
+      allow {}
     }
 
     statement {
-      managed_rule_group_statement {
-        name        = "AWSManagedRulesKnownBadInputsRuleSet"
-        vendor_name = "AWS"
+      byte_match_statement {
+        search_string = ".js"
+        field_to_match {
+          uri_path {}
+        }
+        text_transformation {
+          priority = 0
+          type     = "LOWERCASE"
+        }
+        positional_constraint = "ENDS_WITH"
       }
     }
 
     visibility_config {
       cloudwatch_metrics_enabled = true
-      metric_name                = "KnownBadInputsRuleSetMetric"
+      metric_name                = "AllowJavaScriptMetric"
       sampled_requests_enabled   = true
     }
   }
 
-  # AWS Managed Rule - IP Reputation List
+  # Allow CSS files
+  rule {
+    name     = "AllowCSS"
+    priority = 3
+
+    action {
+      allow {}
+    }
+
+    statement {
+      byte_match_statement {
+        search_string = ".css"
+        field_to_match {
+          uri_path {}
+        }
+        text_transformation {
+          priority = 0
+          type     = "LOWERCASE"
+        }
+        positional_constraint = "ENDS_WITH"
+      }
+    }
+
+    visibility_config {
+      cloudwatch_metrics_enabled = true
+      metric_name                = "AllowCSSMetric"
+      sampled_requests_enabled   = true
+    }
+  }
+
+  # Allow image files
+  rule {
+    name     = "AllowImages"
+    priority = 4
+
+    action {
+      allow {}
+    }
+
+    statement {
+      or_statement {
+        statement {
+          byte_match_statement {
+            search_string = ".svg"
+            field_to_match {
+              uri_path {}
+            }
+            text_transformation {
+              priority = 0
+              type     = "LOWERCASE"
+            }
+            positional_constraint = "ENDS_WITH"
+          }
+        }
+        statement {
+          byte_match_statement {
+            search_string = ".png"
+            field_to_match {
+              uri_path {}
+            }
+            text_transformation {
+              priority = 0
+              type     = "LOWERCASE"
+            }
+            positional_constraint = "ENDS_WITH"
+          }
+        }
+        statement {
+          byte_match_statement {
+            search_string = ".ico"
+            field_to_match {
+              uri_path {}
+            }
+            text_transformation {
+              priority = 0
+              type     = "LOWERCASE"
+            }
+            positional_constraint = "ENDS_WITH"
+          }
+        }
+        statement {
+          byte_match_statement {
+            search_string = ".jpg"
+            field_to_match {
+              uri_path {}
+            }
+            text_transformation {
+              priority = 0
+              type     = "LOWERCASE"
+            }
+            positional_constraint = "ENDS_WITH"
+          }
+        }
+        statement {
+          byte_match_statement {
+            search_string = ".jpeg"
+            field_to_match {
+              uri_path {}
+            }
+            text_transformation {
+              priority = 0
+              type     = "LOWERCASE"
+            }
+            positional_constraint = "ENDS_WITH"
+          }
+        }
+        statement {
+          byte_match_statement {
+            search_string = ".gif"
+            field_to_match {
+              uri_path {}
+            }
+            text_transformation {
+              priority = 0
+              type     = "LOWERCASE"
+            }
+            positional_constraint = "ENDS_WITH"
+          }
+        }
+        statement {
+          byte_match_statement {
+            search_string = ".webp"
+            field_to_match {
+              uri_path {}
+            }
+            text_transformation {
+              priority = 0
+              type     = "LOWERCASE"
+            }
+            positional_constraint = "ENDS_WITH"
+          }
+        }
+      }
+    }
+
+    visibility_config {
+      cloudwatch_metrics_enabled = true
+      metric_name                = "AllowImagesMetric"
+      sampled_requests_enabled   = true
+    }
+  }
+
+  # AWS Managed Rule - IP Reputation List (only block known malicious IPs)
   rule {
     name     = "AWSManagedRulesAmazonIpReputationList"
-    priority = 3
+    priority = 10
 
     override_action {
       none {}
@@ -88,56 +244,10 @@ resource "aws_wafv2_web_acl" "cloudfront_waf" {
     }
   }
 
-  # AWS Managed Rule - Anonymous IP List
-  rule {
-    name     = "AWSManagedRulesAnonymousIpList"
-    priority = 4
-
-    override_action {
-      none {}
-    }
-
-    statement {
-      managed_rule_group_statement {
-        name        = "AWSManagedRulesAnonymousIpList"
-        vendor_name = "AWS"
-      }
-    }
-
-    visibility_config {
-      cloudwatch_metrics_enabled = true
-      metric_name                = "AnonymousIpListMetric"
-      sampled_requests_enabled   = true
-    }
-  }
-
-  # AWS Managed Rule - Linux Operating System
-  rule {
-    name     = "AWSManagedRulesLinuxRuleSet"
-    priority = 5
-
-    override_action {
-      none {}
-    }
-
-    statement {
-      managed_rule_group_statement {
-        name        = "AWSManagedRulesLinuxRuleSet"
-        vendor_name = "AWS"
-      }
-    }
-
-    visibility_config {
-      cloudwatch_metrics_enabled = true
-      metric_name                = "LinuxRuleSetMetric"
-      sampled_requests_enabled   = true
-    }
-  }
-
-  # Rate Limiting Rule
+  # Rate Limiting Rule (more permissive for static sites)
   rule {
     name     = "RateLimitRule"
-    priority = 6
+    priority = 20
 
     action {
       block {}
@@ -145,7 +255,7 @@ resource "aws_wafv2_web_acl" "cloudfront_waf" {
 
     statement {
       rate_based_statement {
-        limit              = 2000
+        limit              = 10000  # Increased from 2000 to 10000
         aggregate_key_type = "IP"
       }
     }
