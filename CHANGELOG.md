@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.4] - 2025-12-21
+
+### Fixed
+
+- **Security Module Provider Configuration**: Fixed missing `aws.us_east_1` provider configuration for security module
+  - **Provider Requirements**: Security module now properly configured with all three required providers (primary, failover, us-east-1)
+  - **Terraform Validation**: Resolved "Missing required provider configuration" error during terraform plan/apply
+  - **Multi-Region Support**: Enables security module to create resources across all required AWS regions
+
+### Technical Details
+
+- **Provider Configuration**: Added `aws.us_east_1` provider to security module providers block
+- **Regional Resources**: Allows security module to create CloudWatch Logs and other us-east-1 specific resources
+- **Complete Configuration**: Security module now has access to primary region, failover region, and us-east-1 providers
+
 ## [1.2.3] - 2025-12-21
 
 ### Fixed
@@ -565,6 +580,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [1.0.14]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.14
 [1.0.13]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.13
 [1.0.12]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.12
+[1.2.4]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.2.4
 [1.2.3]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.2.3
 [1.2.2]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.2.2
 [1.2.1]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.2.1

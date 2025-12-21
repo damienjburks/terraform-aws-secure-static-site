@@ -87,8 +87,9 @@ module "security" {
   source = "./modules/security"
 
   providers = {
-    aws.primary  = aws.primary
-    aws.failover = aws.failover
+    aws.primary   = aws.primary
+    aws.failover  = aws.failover
+    aws.us_east_1 = aws.us_east_1
   }
 
   bucket_prefix                 = var.bucket_name
