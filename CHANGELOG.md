@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.3] - 2025-12-21
+
+### Fixed
+
+- **🛡️ Security Module Restoration**: Restored missing security module that was accidentally removed during architecture updates
+  - **CloudTrail Integration**: Multi-region CloudTrail logging with KMS encryption and S3 storage
+  - **CloudWatch Monitoring**: Security event monitoring with metric filters and alarms
+  - **Security Alerting**: Automated alerts for root access, failed logins, and unauthorized API calls
+  - **Email Notifications**: SNS topic creation and email subscription for security alerts
+  - **Cross-Region Security**: Security logging and monitoring across primary and failover regions
+
+### Technical Details
+
+- **Module Configuration**: Security module properly configured with all required variables
+- **KMS Integration**: Uses same KMS keys as other modules for consistent encryption
+- **Provider Configuration**: Configured with both primary and failover region providers
+- **Default Enabled**: Security module is enabled by default as intended in the original design
+
+### Important Notes
+
+- **No Breaking Changes**: Existing deployments will gain security features on next apply
+- **Email Confirmation**: Security notification emails require manual confirmation via email before alerts are delivered
+- **Resource Addition**: New CloudTrail, CloudWatch, and SNS resources will be created on next terraform apply
+
 ## [1.2.2] - 2025-12-21
 
 ### Changed
@@ -541,6 +565,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [1.0.14]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.14
 [1.0.13]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.13
 [1.0.12]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.12
+[1.2.3]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.2.3
 [1.2.2]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.2.2
 [1.2.1]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.2.1
 [1.2.0]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.2.0

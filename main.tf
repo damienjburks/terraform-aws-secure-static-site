@@ -82,6 +82,28 @@ module "s3" {
   tags                        = var.tags
 }
 
+# Security Module - CloudTrail, monitoring, and security alerts
+module "security" {
+  source = "./modules/security"
+
+  providers = {
+    aws.primary  = aws.primary
+    aws.failover = aws.failover
+  }
+
+  bucket_prefix                 = var.bucket_name
+  primary_region                = var.primary_region
+  failover_region               = var.failover_region
+  kms_key_arn_primary           = local.kms_key_arn_primary
+  kms_key_arn_failover          = local.kms_key_arn_failover
+  enable_replication            = var.enable_replication
+  cloudtrail_log_retention_days = var.cloudtrail_log_retention_days
+  cloudwatch_log_retention_days = var.cloudwatch_log_retention_days
+  alarm_sns_topic_arn           = var.alarm_sns_topic_arn
+  security_notification_email   = var.security_notification_email
+  tags                          = var.tags
+}
+
 # CloudFront Module - Distribution with certificate and domain aliases
 module "cloudfront" {
   source = "./modules/cloudfront"
