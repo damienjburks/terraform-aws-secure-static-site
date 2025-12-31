@@ -520,9 +520,21 @@ resource "aws_cloudfront_distribution" "main" {
 
   # Restrictions
   restrictions {
-    geo_restriction {
-      restriction_type = var.allowed_countries != null && length(var.allowed_countries) > 0 ? "whitelist" : "none"
-      locations        = var.allowed_countries != null && length(var.allowed_countries) > 0 ? var.allowed_countries : null
+    # Geo restriction with no restrictions (global access)
+    dynamic "geo_restriction" {
+      for_each = var.allowed_countries == null || length(var.allowed_countries) == 0 ? [1] : []
+      content {
+        restriction_type = "none"
+      }
+    }
+    
+    # Geo restriction with country whitelist
+    dynamic "geo_restriction" {
+      for_each = var.allowed_countries != null && length(var.allowed_countries) > 0 ? [1] : []
+      content {
+        restriction_type = "whitelist"
+        locations        = var.allowed_countries
+      }
     }
   }
 

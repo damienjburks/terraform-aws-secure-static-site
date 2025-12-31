@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.8] - 2025-12-31
+
+### Fixed
+
+- **CloudFront Geo-Restriction Parameters**: Fixed "InvalidGeoRestrictionParameter" error by properly handling the `locations` parameter when `restriction_type = "none"`
+  - **Dynamic Configuration**: Uses dynamic blocks to properly handle CloudFront geo-restriction parameters based on configuration
+  - **Global Access Fix**: Resolved deployment failures when `allowed_countries` is null or empty (global access mode)
+  - **Parameter Validation**: Ensures `locations` parameter is only provided when `restriction_type = "whitelist"`
+
+### Technical Details
+
+- **Dynamic Blocks**: Replaced single geo_restriction block with conditional dynamic blocks
+- **Global Access**: When `allowed_countries` is null/empty → `restriction_type = "none"` with no `locations` parameter
+- **Restricted Access**: When `allowed_countries` has values → `restriction_type = "whitelist"` with `locations` parameter
+- **AWS Compliance**: Follows AWS CloudFront API requirements for geo-restriction parameter handling
+
 ## [1.2.7] - 2025-12-31
 
 ### Added
@@ -34,6 +50,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Global Default**: `allowed_countries = null` enables worldwide access with no restrictions
 - **Whitelist Mode**: When countries are specified, only those countries can access the website
 - **Backward Compatible**: Existing deployments continue to work without changes
+- **Dynamic Configuration**: Uses dynamic blocks to properly handle CloudFront geo-restriction parameters based on configuration
 
 ### Configuration Examples
 
@@ -677,6 +694,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [1.0.14]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.14
 [1.0.13]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.13
 [1.0.12]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.12
+[1.2.8]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.2.8
 [1.2.7]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.2.7
 [1.2.6]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.2.6
 [1.2.5]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.2.5
