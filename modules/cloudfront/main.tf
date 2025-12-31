@@ -221,13 +221,13 @@ resource "aws_wafv2_web_acl" "cloudfront_waf" {
     }
   }
 
-  # AWS Managed Rule - IP Reputation List (only block known malicious IPs)
+  # AWS Managed Rule - IP Reputation List (count only, don't block)
   rule {
     name     = "AWSManagedRulesAmazonIpReputationList"
     priority = 10
 
     override_action {
-      none {}
+      count {}
     }
 
     statement {

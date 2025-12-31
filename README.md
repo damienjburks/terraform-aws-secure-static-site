@@ -121,14 +121,14 @@ When `enable_waf = true`, the module creates a static website optimized WAF conf
 - **Static Asset Protection**: Explicit allow rules for .html, .js, .css, .svg, .png, .ico, .jpg, .jpeg, .gif, .webp files
 - **Permissive Design**: Optimized for static websites, allows international users and VPN traffic
 - **Rate Limiting**: 10,000 requests per IP (increased from 2,000 for better user experience)
-- **IP Reputation**: Blocks only known malicious IP addresses (not VPNs or proxies)
+- **IP Reputation Monitoring**: Monitors (but doesn't block) requests from IP reputation lists for visibility
 - **CloudWatch Logging**: Detailed WAF logs with KMS encryption
 - **Metrics**: CloudWatch metrics for monitoring WAF activity
 
 **WAF Rules Included:**
 
 - Explicit allow rules for common static file extensions
-- IP reputation filtering (malicious IPs only)
+- IP reputation monitoring (count only, no blocking)
 - Rate limiting protection (10,000 req/IP)
 - Comprehensive logging and monitoring
 
@@ -137,6 +137,7 @@ When `enable_waf = true`, the module creates a static website optimized WAF conf
 - ❌ Linux rule set (was blocking legitimate requests)
 - ❌ Common rule set (was too restrictive for static sites)
 - ❌ Known bad inputs (unnecessary for static content)
+- ❌ IP reputation blocking (now monitoring only)
 
 ### Single Page Application (SPA) Routing
 

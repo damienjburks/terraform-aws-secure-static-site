@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.6] - 2025-12-21
+
+### Fixed
+
+- **WAF IP Reputation Blocking**: Changed AWS Managed IP Reputation List rule from blocking to monitoring only. Users from IP reputation lists can now access the application while still providing visibility through CloudWatch metrics.
+- **User Access Issues**: Resolved remaining access issues for legitimate users who were being blocked by IP reputation filtering.
+
+### Changed
+
+- **WAF IP Reputation Rule**: Modified `AWSManagedRulesAmazonIpReputationList` to use `override_action { count {} }` instead of `override_action { none {} }`, changing from blocking to monitoring behavior.
+- **Maximum Accessibility**: WAF now provides maximum accessibility while maintaining monitoring capabilities for security visibility.
+
+### Technical Details
+
+- **Monitoring Only**: IP reputation rule now counts matches without blocking requests, providing security visibility without impacting user access.
+- **Full Access**: All legitimate users can now access the application regardless of IP reputation status.
+- **Maintained Visibility**: CloudWatch metrics and logs still track IP reputation matches for security monitoring.
+- **Rate Limiting Only**: The only blocking rule remaining is rate limiting (10,000 requests per IP) for extreme abuse protection.
+
+### Security Impact
+
+- **No Security Reduction**: Security monitoring is maintained through metrics and logging.
+- **Improved User Experience**: Eliminates false positives that were blocking legitimate users.
+- **Balanced Approach**: Provides security visibility without compromising accessibility.
+
 ## [1.2.5] - 2025-12-21
 
 ### Fixed
@@ -610,6 +635,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [1.0.14]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.14
 [1.0.13]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.13
 [1.0.12]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.12
+[1.2.6]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.2.6
+[1.2.5]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.2.5
 [1.2.4]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.2.4
 [1.2.3]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.2.3
 [1.2.2]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.2.2
