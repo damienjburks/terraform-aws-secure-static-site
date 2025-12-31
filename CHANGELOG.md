@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.10] - 2025-12-31
+
+### Fixed
+
+- **CloudFront Geo-Restriction Parameters**: Corrected global access configuration to use empty array for locations parameter
+  - **Proper Array Format**: Changed `locations = "none"` to `locations = []` when `restriction_type = "none"`
+  - **Terraform Compliance**: Now properly follows Terraform AWS provider documentation requirement for empty array
+
+### Technical Details
+
+- **Global Access**: When `allowed_countries` is null/empty → `restriction_type = "none"` with `locations = []` (empty array)
+- **Correct Implementation**: Uses empty array as specified in Terraform documentation: "If the type is specified as none an empty array can be used"
+- **Parameter Validation**: Eliminates potential validation errors from invalid country codes
+
 ## [1.2.9] - 2025-12-31
 
 ### Fixed
@@ -722,6 +736,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [1.0.14]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.14
 [1.0.13]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.13
 [1.0.12]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.12
+[1.2.10]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.2.10
 [1.2.9]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.2.9
 [1.2.8]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.2.8
 [1.2.7]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.2.7

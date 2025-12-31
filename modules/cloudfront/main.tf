@@ -525,7 +525,7 @@ resource "aws_cloudfront_distribution" "main" {
       for_each = var.allowed_countries == null || length(var.allowed_countries) == 0 ? [1] : []
       content {
         restriction_type = "none"
-        locations        = "none"
+        locations        = []
       }
     }
 
