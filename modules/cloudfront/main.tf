@@ -255,7 +255,7 @@ resource "aws_wafv2_web_acl" "cloudfront_waf" {
 
     statement {
       rate_based_statement {
-        limit              = 10000  # Increased from 2000 to 10000
+        limit              = 10000 # Increased from 2000 to 10000
         aggregate_key_type = "IP"
       }
     }
@@ -525,9 +525,10 @@ resource "aws_cloudfront_distribution" "main" {
       for_each = var.allowed_countries == null || length(var.allowed_countries) == 0 ? [1] : []
       content {
         restriction_type = "none"
+        locations        = "none"
       }
     }
-    
+
     # Geo restriction with country whitelist
     dynamic "geo_restriction" {
       for_each = var.allowed_countries != null && length(var.allowed_countries) > 0 ? [1] : []
