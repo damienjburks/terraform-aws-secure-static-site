@@ -127,6 +127,7 @@ module "cloudfront" {
   ignore_alias_conflicts        = var.ignore_alias_conflicts
   cache_control_header          = var.cache_control_header
   enable_waf                    = var.enable_waf
+  allowed_countries             = var.allowed_countries
   tags                          = var.tags
 }
 

@@ -100,7 +100,7 @@ variable "cache_control_header" {
 
 variable "allowed_countries" {
   type        = list(string)
-  description = "List of allowed country codes for geo-restriction. If null, defaults to common countries (US, CA, GB, AU, DE, FR, etc.)"
+  description = "List of allowed country codes for geo-restriction. Set to null or empty list to allow all countries globally."
   default     = null
 }
 

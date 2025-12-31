@@ -178,3 +178,9 @@ variable "enable_s3_notifications" {
   default     = false
 }
 
+variable "allowed_countries" {
+  type        = list(string)
+  description = "List of allowed country codes for CloudFront geo-restriction (e.g., ['US', 'CA', 'GB']). Set to null or empty list to allow all countries globally."
+  default     = null
+}
+

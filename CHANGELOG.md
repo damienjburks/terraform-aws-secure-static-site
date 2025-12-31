@@ -5,6 +5,48 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.7] - 2025-12-31
+
+### Added
+
+- **Geographic Access Control**: New `allowed_countries` variable for CloudFront geo-restriction configuration
+  - **Global Access by Default**: No geographic restrictions by default - allows access from all countries worldwide
+  - **Configurable Restrictions**: Optional country-specific access control using ISO country codes
+  - **Flexible Configuration**: Easy to switch between global access and restricted access patterns
+
+### Changed
+
+- **CloudFront Geo-Restriction Logic**: Updated geo-restriction configuration to properly handle global vs restricted access
+  - **Default Behavior**: `restriction_type = "none"` when no countries specified (global access)
+  - **Restricted Access**: `restriction_type = "whitelist"` when specific countries are provided
+  - **Improved Logic**: Better handling of null and empty country lists
+- **WAF Association**: Changed WAF web ACL ID assignment from `null` to empty string for explicit control
+- **Documentation**: Added comprehensive Geographic Access Control section with examples and usage patterns
+
+### Fixed
+
+- **Global Access Configuration**: Fixed CloudFront distribution to properly allow global access when no country restrictions are specified
+- **Geo-Restriction Logic**: Resolved issues with geo-restriction configuration that could cause deployment failures
+
+### Technical Details
+
+- **Country Code Format**: Uses standard ISO 3166-1 alpha-2 country codes (e.g., "US", "CA", "GB")
+- **Global Default**: `allowed_countries = null` enables worldwide access with no restrictions
+- **Whitelist Mode**: When countries are specified, only those countries can access the website
+- **Backward Compatible**: Existing deployments continue to work without changes
+
+### Configuration Examples
+
+- **Global Access (Default)**: `allowed_countries = null`
+- **US and Canada Only**: `allowed_countries = ["US", "CA"]`
+- **European Union**: `allowed_countries = ["DE", "FR", "IT", "ES", "NL", "BE", "AT", "SE", "DK", "FI", "IE", "PT", "GR", "LU", "CY", "MT", "SI", "SK", "EE", "LV", "LT", "HR", "BG", "RO", "HU", "CZ", "PL"]`
+
+### Important Notes
+
+- **User Impact**: Geographic restrictions can block legitimate users - use with caution
+- **Global Audience**: Consider your international user base before implementing restrictions
+- **Compliance**: Useful for regulatory compliance requirements that mandate geographic access controls
+
 ## [1.2.6] - 2025-12-21
 
 ### Fixed
@@ -635,6 +677,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [1.0.14]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.14
 [1.0.13]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.13
 [1.0.12]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.0.12
+[1.2.7]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.2.7
 [1.2.6]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.2.6
 [1.2.5]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.2.5
 [1.2.4]: https://github.com/your-org/terraform-aws-static-website/releases/tag/v1.2.4

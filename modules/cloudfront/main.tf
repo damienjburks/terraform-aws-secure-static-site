@@ -515,14 +515,14 @@ resource "aws_cloudfront_distribution" "main" {
     }
   }
 
-  # WAF Association (optional)
-  web_acl_id = var.enable_waf ? aws_wafv2_web_acl.cloudfront_waf[0].arn : null
+  # WAF Association (explicit control)
+  web_acl_id = var.enable_waf ? aws_wafv2_web_acl.cloudfront_waf[0].arn : ""
 
   # Restrictions
   restrictions {
     geo_restriction {
-      restriction_type = "whitelist"
-      locations        = var.allowed_countries != null ? var.allowed_countries : ["US", "CA", "GB", "AU", "DE", "FR", "IT", "ES", "NL", "SE", "NO", "DK", "FI", "JP", "KR", "SG", "BR", "MX"]
+      restriction_type = var.allowed_countries != null && length(var.allowed_countries) > 0 ? "whitelist" : "none"
+      locations        = var.allowed_countries != null && length(var.allowed_countries) > 0 ? var.allowed_countries : null
     }
   }
 

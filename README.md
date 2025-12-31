@@ -149,6 +149,28 @@ When `enable_spa_routing = true`, CloudFront is configured to support client-sid
 
 This allows URLs like `https://example.com/docs/getting-started` to work correctly when users navigate directly to them or refresh the page.
 
+### Geographic Access Control
+
+By default, the module allows global access to your website from all countries:
+
+- **Default**: No geographic restrictions (global access)
+- **Configurable**: Can restrict access to specific countries if needed
+- **Flexible**: Easy to switch between global and restricted access
+
+**Global Access (Default):**
+```hcl
+# No restrictions - allows access from all countries
+allowed_countries = null  # Default value
+```
+
+**Restricted Access:**
+```hcl
+# Only allow specific countries
+allowed_countries = ["US", "CA", "GB", "AU", "DE", "FR"]
+```
+
+**Important**: Geographic restrictions can block legitimate users. Use with caution and consider your global audience.
+
 ### Cache Control Headers
 
 The module automatically adds Cache-Control headers to all responses:
@@ -314,6 +336,7 @@ module "static_website" {
 | cache_control_header      | Cache-Control header value to add to all responses from CloudFront                                                  | string       | "no-cache, no-store, must-revalidate" | no       |
 | content_security_policy   | Content Security Policy header value                                                                                | string       | (see default in variables.tf)         | no       |
 | enable_waf                | Enable AWS WAF Web ACL for CloudFront protection (advanced security feature)                                        | bool         | false                                 | no       |
+| allowed_countries         | List of country codes for geo-restriction (e.g., ['US', 'CA']). Set to null/empty for global access                | list(string) | null                                  | no       |
 
 ### Recommended Region Pairs
 
